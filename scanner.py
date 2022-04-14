@@ -35,7 +35,7 @@ class Scanner:
         self.current = DFA.get_next_state(self.current, next_char)
         self.buffer = self.buffer + next_char
         if self.current.value.accept:
-            result = (TokenType.SYMBOL, self.buffer)
+            result = (TokenType.SYMBOL, self.buffer[-1])
             self.buffer = ""
             self.current = DFA.initial_state
             return result
