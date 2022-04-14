@@ -2,20 +2,12 @@ from collections import namedtuple
 from enum import Enum
 from string import ascii_letters, digits, whitespace, punctuation
 
+from utils import TokenType, IDENTIFIERS
 
 # TODO:
 # [ ] Handle Invalid Inputs
 # [x] next_state should consider sets
 # [x] Remove last charracter hack
-
-class TokenType(Enum):
-    NUMBER = 0
-    ID = 1
-    KEYWORD = 2
-    SYMBOL = 3
-    COMMENT = 4
-    WHITESPACE = 5
-
 
 StateItem = namedtuple('State', ['id', 'token_type', 'lookahead'])
 counter = iter(range(1000000))
@@ -112,6 +104,8 @@ class Scanner:
             if self.current.value.lookahead:
                 self.buffer = self.buffer[:-1]
             result = (self.current.value.token_type, self.buffer)
+            if result[0] == TokenType.KEYWORD and self.buffer not in IDENTIFIERS:
+                result = (TokenType.ID, self.buffer)
             Scanner.reset(self)
             return result, self.current.value.lookahead
         return None, False
