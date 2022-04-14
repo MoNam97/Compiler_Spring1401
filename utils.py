@@ -1,4 +1,5 @@
 from enum import Enum
+from string import ascii_letters, digits, whitespace, printable
 
 IDENTIFIERS = ['break', 'continue', 'def', 'else', 'if', 'return', 'while']
 
@@ -10,3 +11,13 @@ class TokenType(Enum):
     SYMBOL = 3
     COMMENT = 4
     WHITESPACE = 5
+
+
+class Char:
+    LETTER = ascii_letters
+    DIGIT = digits
+    WHITESPACE = whitespace
+    SYMBOL = '()[]:*+-=;,<'
+    COMMENT_SYMBOL = '/#'
+    ALL = printable
+    EOF = chr(3)

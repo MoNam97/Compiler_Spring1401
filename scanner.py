@@ -1,8 +1,15 @@
 from collections import namedtuple
 from enum import Enum
-from string import ascii_letters, digits, whitespace, punctuation, printable
+from string import punctuation
 
-from utils import TokenType, IDENTIFIERS
+from lexical_errors import (
+    InvalidNumberError,
+    BaseLexicalError,
+    InvalidInputError,
+    UnmatchedCommentError,
+    UnclosedCommentError
+)
+from utils import TokenType, IDENTIFIERS, Char
 
 # TODO:
 # [ ] Handle Invalid Inputs
@@ -42,15 +49,6 @@ class State(Enum):
     COMMENT_MULTILINE_FINAL = StateItem(next(counter), TokenType.COMMENT, False)
 
 
-class Char:
-    LETTER = ascii_letters
-    DIGIT = digits
-    WHITESPACE = whitespace
-    SYMBOL = '()[]:*+-=;,<'
-    COMMENT_SYMBOL = '/#'
-    ALL = printable
-
-
 class DFA:
     initial_state = State.INITIAL
     next = [
@@ -60,7 +58,7 @@ class DFA:
          State.EQUAL_SYMBOL3),
         (State.INITIAL, '*', State.STAR),
         (State.STAR, '*', State.STAR2),
-        (State.STAR, Char.LETTER + Char.DIGIT + Char.WHITESPACE + Char.SYMBOL + Char.COMMENT_SYMBOL, State.STAR3),
+        (State.STAR, Char.LETTER + Char.DIGIT + Char.WHITESPACE + Char.SYMBOL + '#', State.STAR3),
         (State.INITIAL, Char.SYMBOL, State.SYMBOL_FINAL),
 
         # digit:
@@ -83,7 +81,7 @@ class DFA:
 
         # Comment:
         (State.INITIAL, '#', State.COMMENT_ONELINE),
-        (State.COMMENT_ONELINE, '\n', State.COMMENT_FINAL),
+        (State.COMMENT_ONELINE, Char.EOF + '\n', State.COMMENT_FINAL),
         (State.COMMENT_ONELINE, Char.ALL, State.COMMENT_ONELINE),
 
         # Comment multi line:
@@ -115,11 +113,13 @@ class Scanner:
         self.buffer = ""
 
     def get_next_token(self, next_char):
+        prev_state = self.current
         self.current = DFA.get_next_state(self.current, next_char)
         self.buffer = self.buffer + next_char
         if self.current is None:
-            print(self.buffer)
+            text = self.buffer
             Scanner.reset(self)
+            self.handle_panic_mode(prev_state, text)
         if self.current.value.token_type:  # State is final
             lookahead = self.current.value.lookahead
             if lookahead:
@@ -130,3 +130,18 @@ class Scanner:
             Scanner.reset(self)
             return result, lookahead
         return None, False
+
+    error_handler = {
+        State.DIGIT_INT: InvalidNumberError,
+        State.DIGIT_FLOAT: InvalidNumberError,
+        State.KEYWORD: InvalidInputError,
+        State.STAR: UnmatchedCommentError,
+        State.COMMENT_MULTILINE2: UnclosedCommentError,
+        State.COMMENT_MULTILINE1: InvalidInputError,
+        State.INITIAL: InvalidInputError
+    }
+
+    def handle_panic_mode(self, prev_state, text):
+        print(text)
+        Handler: BaseLexicalError = self.error_handler.get(prev_state, InvalidInputError)
+        raise Handler(text=text)

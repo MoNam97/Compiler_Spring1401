@@ -2,8 +2,9 @@
 # DE
 from copy import copy
 
+from lexical_errors import BaseLexicalError
 from scanner import Scanner
-from utils import IDENTIFIERS, TokenType
+from utils import IDENTIFIERS, TokenType, Char
 
 
 def write_tokens(recognized_tokens):
@@ -25,24 +26,37 @@ def write_symbol_table(symbols):
             f.write(f"{idx + 1}. {symbol}\n")
 
 
+def write_lexical_errors(lexical_errors):
+    print(lexical_errors)
+
+
 def run():
     scanner = Scanner()
     recognized_tokens = []
     symbols = copy(IDENTIFIERS)
+    lexical_errors = []
     with open("PA1-Testcases/T01/input.txt", "r") as f:
         lineno = 0
-        while next_char := f.read(1):
+        while True:
+            next_char = f.read(1) or Char.EOF
             lookahead = True
-            while lookahead:
-                recognized_token, lookahead = scanner.get_next_token(next_char)
-                if recognized_token:
-                    recognized_tokens.append((lineno, recognized_token))
-                    if recognized_token[0] == TokenType.ID and recognized_token[1] not in symbols:
-                        symbols.append(recognized_token[1])
+            try:
+                while lookahead:
+                    recognized_token, lookahead = scanner.get_next_token(next_char)
+                    if recognized_token:
+                        recognized_tokens.append((lineno, recognized_token))
+                        if recognized_token[0] == TokenType.ID and recognized_token[1] not in symbols:
+                            symbols.append(recognized_token[1])
+            except BaseLexicalError as e:
+                lexical_errors.append(e)
             if next_char == '\n':
                 lineno += 1
+            if not next_char:
+                break
+
     write_symbol_table(symbols)
     write_tokens(recognized_tokens)
+    write_lexical_errors(lexical_errors)
 
 
 if __name__ == '__main__':
