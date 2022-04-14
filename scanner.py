@@ -22,10 +22,10 @@ class State(Enum):
     EQUAL_SYMBOL = StateItem(next(counter), False, False)
     EQUAL_SYMBOL2 = StateItem(next(counter), True, False)
     EQUAL_SYMBOL3 = StateItem(next(counter), True, True)
-    STAR  = StateItem(next(counter),False, False)
-    STAR2 = StateItem(next(counter),True, False)
-    STAR3 = StateItem(next(counter),True, True)
-    
+    STAR = StateItem(next(counter), False, False)
+    STAR2 = StateItem(next(counter), True, False)
+    STAR3 = StateItem(next(counter), True, True)
+
     DIGIT_INT = StateItem(next(counter), False, False)
     DIGIT_FLOAT = StateItem(next(counter), False, False)
     DIGIT_FINAL = StateItem(next(counter), True, True)
@@ -48,12 +48,13 @@ class DFA:
     next = [
         (State.INITIAL, '=', State.EQUAL_SYMBOL),
         (State.EQUAL_SYMBOL, '=', State.EQUAL_SYMBOL2),
-        (State.EQUAL_SYMBOL, Char.LETTER + Char.DIGIT + Char.WHITESPACE + Char.SYMBOL + Char.COMMENT_SYMBOL, State.EQUAL_SYMBOL3),
+        (State.EQUAL_SYMBOL, Char.LETTER + Char.DIGIT + Char.WHITESPACE + Char.SYMBOL + Char.COMMENT_SYMBOL,
+         State.EQUAL_SYMBOL3),
         (State.INITIAL, '*', State.STAR),
         (State.STAR, '*', State.STAR2),
         (State.STAR, Char.LETTER + Char.DIGIT + Char.WHITESPACE + Char.SYMBOL + Char.COMMENT_SYMBOL, State.STAR3),
-        (State.INITIAL, Char.SYMBOL , State.SYMBOL_FINAL),
-        
+        (State.INITIAL, Char.SYMBOL, State.SYMBOL_FINAL),
+
         # digit:
         (State.INITIAL, Char.DIGIT, State.DIGIT_INT),
         (State.DIGIT_INT, Char.DIGIT, State.DIGIT_INT),
