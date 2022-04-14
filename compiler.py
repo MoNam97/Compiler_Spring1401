@@ -2,6 +2,9 @@
 # DE
 from scanner import Scanner
 
+def initialize_symboltable():
+    return symboltable := ['break', 'continue', 'def', 'else', 'if', 'return', 'while']
+        
 
 def write_tokens(recognized_tokens):
     for lineno, token in recognized_tokens:
@@ -23,4 +26,5 @@ def run():
 
 
 if __name__ == '__main__':
+    symboltable = initialize_symboltable()
     run()
