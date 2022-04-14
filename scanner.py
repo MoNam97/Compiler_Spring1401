@@ -76,8 +76,7 @@ class DFA:
         # Whitespace:
         (State.INITIAL, Char.WHITESPACE, State.WHITESPACE),
         (State.WHITESPACE, Char.WHITESPACE, State.WHITESPACE),
-        (State.WHITESPACE, Char.LETTER + Char.DIGIT + punctuation , State.WHITESPACE_FINAL)
-        # (state, character): state2,
+        (State.WHITESPACE, Char.LETTER + Char.DIGIT + punctuation , State.WHITESPACE_FINAL),
         
         # Comment:
         (State.INITIAL, '#', State.COMMENT_ONELINE),
