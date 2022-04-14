@@ -22,6 +22,9 @@ class State(Enum):
     EQUAL_SYMBOL = StateItem(2, False, False)
     EQUAL_SYMBOL2 = StateItem(3, True, False)
     EQUAL_SYMBOL3 = StateItem(4, True, True)
+    EQUAL_DIGIT_INT = StateItem(5, True, False)
+    EQUAL_DIGIT_FLOAT = StateItem(6, True, False)
+    EQUAL_DIGIT_FINAL = StateItem(7, True, False)
     #GARBAGE       = StateItem(5, True, False)
 
 
@@ -45,8 +48,14 @@ class DFA:
         ((State.INITIAL, '-'), State.ACC1),
         ((State.INITIAL, '<'), State.ACC1),
         ((State.INITIAL, '='), State.EQUAL_SYMBOL),
+        ((State.INITIAL, Char.DIGIT), State.EQUAL_DIGIT_INT),
         ((State.EQUAL_SYMBOL, '='), State.EQUAL_SYMBOL2),
-        ((State.EQUAL_SYMBOL, {Char.LETTER, Char.DIGIT, Char.WHITESPACE, Char.SYMBOL}), State.EQUAL_SYMBOL3)
+        ((State.EQUAL_SYMBOL, {Char.LETTER, Char.DIGIT, Char.WHITESPACE, Char.SYMBOL}), State.EQUAL_SYMBOL3),
+        ((State.EQUAL_DIGIT_INT, Char.DIGIT), State.EQUAL_DIGIT_INT),
+        ((State.EQUAL_DIGIT_INT, '.'), State.EQUAL_DIGIT_FLOAT),
+        ((State.EQUAL_DIGIT_FLOAT, Char.DIGIT), State.EQUAL_DIGIT_FLOAT),
+        ((State.EQUAL_DIGIT_FLOAT, {Char.WHITESPACE, Char.SYMBOL}), State.EQUAL_DIGIT_FINAL),
+        ((State.EQUAL_DIGIT_INT, {Char.WHITESPACE, Char.SYMBOL}), State.EQUAL_DIGIT_FINAL),
         # (state, character): state2,
     ]
 
