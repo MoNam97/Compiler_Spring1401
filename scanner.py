@@ -22,9 +22,9 @@ class State(Enum):
     EQUAL_SYMBOL = StateItem(next(counter), False, False)
     EQUAL_SYMBOL2 = StateItem(next(counter), True, False)
     EQUAL_SYMBOL3 = StateItem(next(counter), True, True)
-    EQUAL_DIGIT_INT = StateItem(next(counter), True, False)
-    EQUAL_DIGIT_FLOAT = StateItem(next(counter), True, False)
-    EQUAL_DIGIT_FINAL = StateItem(next(counter), True, False)
+    EQUAL_DIGIT_INT = StateItem(next(counter), False, False)
+    EQUAL_DIGIT_FLOAT = StateItem(next(counter), False, False)
+    EQUAL_DIGIT_FINAL = StateItem(next(counter), True, True)
 
     KEYWORD = StateItem(next(counter), False, False)
     KEYWORD_FINAL = StateItem(next(counter), True, True)
@@ -51,9 +51,11 @@ class DFA:
         (State.INITIAL, '-', State.ACC1),
         (State.INITIAL, '<', State.ACC1),
         (State.INITIAL, '=', State.EQUAL_SYMBOL),
-        (State.INITIAL, Char.DIGIT, State.EQUAL_DIGIT_INT),
         (State.EQUAL_SYMBOL, '=', State.EQUAL_SYMBOL2),
         (State.EQUAL_SYMBOL, Char.LETTER + Char.DIGIT + Char.WHITESPACE + Char.SYMBOL, State.EQUAL_SYMBOL3),
+        
+        # digit:
+        (State.INITIAL, Char.DIGIT, State.EQUAL_DIGIT_INT),
         (State.EQUAL_DIGIT_INT, Char.DIGIT, State.EQUAL_DIGIT_INT),
         (State.EQUAL_DIGIT_INT, '.', State.EQUAL_DIGIT_FLOAT),
         (State.EQUAL_DIGIT_FLOAT, Char.DIGIT, State.EQUAL_DIGIT_FLOAT),
