@@ -75,6 +75,9 @@ class DFA:
 
 
 class Scanner:
+    current = None
+    buffer = None
+
     def __init__(self):
         Scanner.reset(self)
 
@@ -90,6 +93,9 @@ class Scanner:
             print(self.buffer)
             Scanner.reset(self)
         if self.current.value.accept:
-            result = (TokenType.SYMBOL, self.buffer[-1])
+            if self.current.value.lookahead:
+                self.buffer = self.buffer[:-1]
+            result = (TokenType.SYMBOL, self.buffer)
             Scanner.reset(self)
-            return result
+            return result, self.current.value.lookahead
+        return None, False
