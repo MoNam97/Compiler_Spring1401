@@ -3,7 +3,7 @@
 from scanner import Scanner
 
 def initialize_symboltable():
-    return symboltable := ['break', 'continue', 'def', 'else', 'if', 'return', 'while']
+    return ['break', 'continue', 'def', 'else', 'if', 'return', 'while']
         
 
 def write_tokens(recognized_tokens):
