@@ -29,14 +29,17 @@ class State(Enum):
 
     KEYWORD = StateItem(next(counter), False, False)
     KEYWORD_FINAL = StateItem(next(counter), TokenType.KEYWORD, True)
-    
+
     WHITESPACE = StateItem(next(counter), False, False)
     WHITESPACE_FINAL = StateItem(next(counter), TokenType.WHITESPACE, True)
     # GARBAGE       = StateItem(5, True, False)
-    
+
     COMMENT_ONELINE = StateItem(next(counter), False, False)
-    COMMENT_MULTILINE = StateItem(next(counter),False, False)
+    COMMENT_MULTILINE1 = StateItem(next(counter), False, False)
+    COMMENT_MULTILINE2 = StateItem(next(counter), False, False)
+    COMMENT_MULTILINE3 = StateItem(next(counter), False, False)
     COMMENT_FINAL = StateItem(next(counter), TokenType.COMMENT, True)
+    COMMENT_MULTILINE_FINAL = StateItem(next(counter), TokenType.COMMENT, False)
 
 
 class Char:
@@ -72,16 +75,24 @@ class DFA:
         (State.INITIAL, Char.LETTER, State.KEYWORD),
         (State.KEYWORD, Char.LETTER + Char.DIGIT, State.KEYWORD),
         (State.KEYWORD, Char.WHITESPACE + Char.SYMBOL + Char.COMMENT_SYMBOL, State.KEYWORD_FINAL),
-        
+
         # Whitespace:
         (State.INITIAL, Char.WHITESPACE, State.WHITESPACE),
         (State.WHITESPACE, Char.WHITESPACE, State.WHITESPACE),
-        (State.WHITESPACE, Char.LETTER + Char.DIGIT + punctuation , State.WHITESPACE_FINAL),
-        
+        (State.WHITESPACE, Char.LETTER + Char.DIGIT + punctuation, State.WHITESPACE_FINAL),
+
         # Comment:
         (State.INITIAL, '#', State.COMMENT_ONELINE),
         (State.COMMENT_ONELINE, '\n', State.COMMENT_FINAL),
         (State.COMMENT_ONELINE, Char.ALL, State.COMMENT_ONELINE),
+
+        # Comment multi line:
+        (State.INITIAL, "/", State.COMMENT_MULTILINE1),
+        (State.COMMENT_MULTILINE1, "*", State.COMMENT_MULTILINE2),
+        (State.COMMENT_MULTILINE2, "*", State.COMMENT_MULTILINE3),
+        (State.COMMENT_MULTILINE2, Char.ALL, State.COMMENT_MULTILINE2),
+        (State.COMMENT_MULTILINE3, "/", State.COMMENT_MULTILINE_FINAL),
+        (State.COMMENT_MULTILINE3, Char.ALL, State.COMMENT_MULTILINE2),
     ]
 
     @staticmethod
