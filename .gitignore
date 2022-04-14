@@ -658,11 +658,7 @@ FodyWeavers.xsd
 
 # End of https://www.toptal.com/developers/gitignore/api/pycharm+iml,visualstudio,visualstudiocode,python
 .idea
-<<<<<<< HEAD
-__pycache__/scanner.cpython-38.pyc
-=======
 symbol_table.txt
 lexical_errors.txt
 tokens.txt
 input.txt
->>>>>>> 37f599943f90fbf08b6d344556ef78c46e2cead6
