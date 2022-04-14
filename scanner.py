@@ -9,29 +9,34 @@ from string import ascii_letters, digits, whitespace
 # [ ] Remove last charracter hack
 
 class TokenType(Enum):
-    SYMBOL = 0
+    NUMBER = 0
+    ID = 1
+    KEYWORD = 2
+    SYMBOL = 3
+    COMMENT = 4
+    WHITESPACE = 5
 
 
-StateItem = namedtuple('State', ['id', 'accept', 'lookahead'])
+StateItem = namedtuple('State', ['id', 'token_type', 'lookahead'])
 counter = iter(range(1000000))
 
 
 class State(Enum):
     INITIAL = StateItem(next(counter), False, False)
-    SYMBOL_FINAL = StateItem(next(counter), True, False)
+    SYMBOL_FINAL = StateItem(next(counter), TokenType.SYMBOL, False)
     EQUAL_SYMBOL = StateItem(next(counter), False, False)
-    EQUAL_SYMBOL2 = StateItem(next(counter), True, False)
-    EQUAL_SYMBOL3 = StateItem(next(counter), True, True)
+    EQUAL_SYMBOL2 = StateItem(next(counter), TokenType.SYMBOL, False)
+    EQUAL_SYMBOL3 = StateItem(next(counter), TokenType.SYMBOL, True)
     STAR = StateItem(next(counter), False, False)
-    STAR2 = StateItem(next(counter), True, False)
-    STAR3 = StateItem(next(counter), True, True)
+    STAR2 = StateItem(next(counter), TokenType.SYMBOL, False)
+    STAR3 = StateItem(next(counter), TokenType.SYMBOL, True)
 
     DIGIT_INT = StateItem(next(counter), False, False)
     DIGIT_FLOAT = StateItem(next(counter), False, False)
-    DIGIT_FINAL = StateItem(next(counter), True, True)
+    DIGIT_FINAL = StateItem(next(counter), TokenType.NUMBER, True)
 
     KEYWORD = StateItem(next(counter), False, False)
-    KEYWORD_FINAL = StateItem(next(counter), True, True)
+    KEYWORD_FINAL = StateItem(next(counter), TokenType.KEYWORD, True)
     # GARBAGE       = StateItem(5, True, False)
 
 
@@ -95,10 +100,10 @@ class Scanner:
         if self.current is None:
             print(self.buffer)
             Scanner.reset(self)
-        if self.current.value.accept:
+        if self.current.value.token_type:  # State is final
             if self.current.value.lookahead:
                 self.buffer = self.buffer[:-1]
-            result = (TokenType.SYMBOL, self.buffer)
+            result = (self.current.value.token_type, self.buffer)
             Scanner.reset(self)
             return result, self.current.value.lookahead
         return None, False
