@@ -13,17 +13,21 @@ class TokenType(Enum):
 
 
 StateItem = namedtuple('State', ['id', 'accept', 'lookahead'])
+counter = iter(range(1000000))
 
 
 class State(Enum):
-    INITIAL = StateItem(0, False, False)
-    ACC1 = StateItem(1, True, False)
-    EQUAL_SYMBOL = StateItem(2, False, False)
-    EQUAL_SYMBOL2 = StateItem(3, True, False)
-    EQUAL_SYMBOL3 = StateItem(4, True, True)
-    EQUAL_DIGIT_INT = StateItem(5, False, False)
-    EQUAL_DIGIT_FLOAT = StateItem(6, False, False)
-    EQUAL_DIGIT_FINAL = StateItem(7, True, True)
+    INITIAL = StateItem(next(counter), False, False)
+    ACC1 = StateItem(next(counter), True, False)
+    EQUAL_SYMBOL = StateItem(next(counter), False, False)
+    EQUAL_SYMBOL2 = StateItem(next(counter), True, False)
+    EQUAL_SYMBOL3 = StateItem(next(counter), True, True)
+    EQUAL_DIGIT_INT = StateItem(next(counter), False, False)
+    EQUAL_DIGIT_FLOAT = StateItem(next(counter), False, False)
+    EQUAL_DIGIT_FINAL = StateItem(next(counter), True, True)
+
+    KEYWORD = StateItem(next(counter), False, False)
+    KEYWORD_FINAL = StateItem(next(counter), True, True)
     # GARBAGE       = StateItem(5, True, False)
 
 
@@ -55,6 +59,11 @@ class DFA:
         (State.EQUAL_DIGIT_FLOAT, Char.DIGIT, State.EQUAL_DIGIT_FLOAT),
         (State.EQUAL_DIGIT_FLOAT, Char.WHITESPACE + Char.SYMBOL, State.EQUAL_DIGIT_FINAL),
         (State.EQUAL_DIGIT_INT, Char.WHITESPACE + Char.SYMBOL, State.EQUAL_DIGIT_FINAL),
+
+        # Letter:
+        (State.INITIAL, Char.LETTER, State.KEYWORD),
+        (State.KEYWORD, Char.LETTER + Char.DIGIT, State.KEYWORD),
+        (State.KEYWORD, Char.WHITESPACE + Char.SYMBOL, State.KEYWORD_FINAL),
         # (state, character): state2,
     ]
 
