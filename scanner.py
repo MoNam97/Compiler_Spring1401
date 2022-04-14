@@ -38,31 +38,30 @@ class Char(Enum):
 class DFA:
     initial_state = State.INITIAL
     next = [
-        ((State.INITIAL, '('), State.ACC1),
-        ((State.INITIAL, ')'), State.ACC1),
-        ((State.INITIAL, '['), State.ACC1),
-        ((State.INITIAL, ']'), State.ACC1),
-        ((State.INITIAL, ','), State.ACC1),
-        ((State.INITIAL, ':'), State.ACC1),
-        ((State.INITIAL, '+'), State.ACC1),
-        ((State.INITIAL, '-'), State.ACC1),
-        ((State.INITIAL, '<'), State.ACC1),
-        ((State.INITIAL, '='), State.EQUAL_SYMBOL),
-        ((State.INITIAL, Char.DIGIT), State.EQUAL_DIGIT_INT),
-        ((State.EQUAL_SYMBOL, '='), State.EQUAL_SYMBOL2),
-        ((State.EQUAL_SYMBOL, {Char.LETTER, Char.DIGIT, Char.WHITESPACE, Char.SYMBOL}), State.EQUAL_SYMBOL3),
-        ((State.EQUAL_DIGIT_INT, Char.DIGIT), State.EQUAL_DIGIT_INT),
-        ((State.EQUAL_DIGIT_INT, '.'), State.EQUAL_DIGIT_FLOAT),
-        ((State.EQUAL_DIGIT_FLOAT, Char.DIGIT), State.EQUAL_DIGIT_FLOAT),
-        ((State.EQUAL_DIGIT_FLOAT, {Char.WHITESPACE, Char.SYMBOL}), State.EQUAL_DIGIT_FINAL),
-        ((State.EQUAL_DIGIT_INT, {Char.WHITESPACE, Char.SYMBOL}), State.EQUAL_DIGIT_FINAL),
+        (State.INITIAL, '(', State.ACC1),
+        (State.INITIAL, ')', State.ACC1),
+        (State.INITIAL, '[', State.ACC1),
+        (State.INITIAL, ']', State.ACC1),
+        (State.INITIAL, ',', State.ACC1),
+        (State.INITIAL, ':', State.ACC1),
+        (State.INITIAL, '+', State.ACC1),
+        (State.INITIAL, '-', State.ACC1),
+        (State.INITIAL, '<', State.ACC1),
+        (State.INITIAL, '=', State.EQUAL_SYMBOL),
+        (State.INITIAL, Char.DIGIT, State.EQUAL_DIGIT_INT),
+        (State.EQUAL_SYMBOL, '=', State.EQUAL_SYMBOL2),
+        (State.EQUAL_SYMBOL, {Char.LETTER, Char.DIGIT, Char.WHITESPACE, Char.SYMBOL}, State.EQUAL_SYMBOL3),
+        (State.EQUAL_DIGIT_INT, Char.DIGIT, State.EQUAL_DIGIT_INT),
+        (State.EQUAL_DIGIT_INT, '.', State.EQUAL_DIGIT_FLOAT),
+        (State.EQUAL_DIGIT_FLOAT, Char.DIGIT, State.EQUAL_DIGIT_FLOAT),
+        (State.EQUAL_DIGIT_FLOAT, {Char.WHITESPACE, Char.SYMBOL}, State.EQUAL_DIGIT_FINAL),
+        (State.EQUAL_DIGIT_INT, {Char.WHITESPACE, Char.SYMBOL}, State.EQUAL_DIGIT_FINAL),
         # (state, character): state2,
     ]
 
     @staticmethod
     def get_next_state(current, next_char):
-        for key, end_state in DFA.next:
-            (state, char_set) = key
+        for state, char_set, end_state in DFA.next:
             if state == current and next_char in char_set:
                 return end_state
 
@@ -79,7 +78,7 @@ class Scanner:
     def get_next_token(self, next_char):
         self.current = DFA.get_next_state(self.current, next_char)
         self.buffer = self.buffer + next_char
-        if self.current == None:
+        if self.current is None:
             print(self.buffer)
             Scanner.reset(self)
         if self.current.value.accept:
