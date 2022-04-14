@@ -1,6 +1,6 @@
 from collections import namedtuple
 from enum import Enum
-from string import ascii_letters, digits, whitespace, punctuation
+from string import ascii_letters, digits, whitespace, punctuation, printable
 
 from utils import TokenType, IDENTIFIERS
 
@@ -33,6 +33,10 @@ class State(Enum):
     WHITESPACE = StateItem(next(counter), False, False)
     WHITESPACE_FINAL = StateItem(next(counter), TokenType.WHITESPACE, True)
     # GARBAGE       = StateItem(5, True, False)
+    
+    COMMENT_ONELINE = StateItem(next(counter), False, False)
+    COMMENT_MULTILINE = StateItem(next(counter),False, False)
+    COMMENT_FINAL = StateItem(next(counter), TokenType.COMMENT, True)
 
 
 class Char:
@@ -41,6 +45,7 @@ class Char:
     WHITESPACE = whitespace
     SYMBOL = '()[]:*+-=;,<'
     COMMENT_SYMBOL = '/#'
+    ALL = printable
 
 
 class DFA:
@@ -73,6 +78,11 @@ class DFA:
         (State.WHITESPACE, Char.WHITESPACE, State.WHITESPACE),
         (State.WHITESPACE, Char.LETTER + Char.DIGIT + punctuation , State.WHITESPACE_FINAL)
         # (state, character): state2,
+        
+        # Comment:
+        (State.INITIAL, '#', State.COMMENT_ONELINE)
+        (State.COMMENT_ONELINE, '\n', State.COMMENT_FINAL)
+        (State.COMMENT_ONELINE, Char.ALL, State.COMMENT_ONELINE)
     ]
 
     @staticmethod
