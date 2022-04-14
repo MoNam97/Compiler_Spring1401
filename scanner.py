@@ -15,6 +15,8 @@ from utils import TokenType, IDENTIFIERS, Char
 # [x] Handle Invalid Inputs
 # [x] next_state should consider sets
 # [x] Remove last charracter hack
+# [ ] handle the INITIAL -> EOF token
+# [ ] error handling for errors starting with '/' + '*$' is NOT an Unmatched comment
 
 StateItem = namedtuple('State', ['id', 'token_type', 'lookahead'])
 counter = iter(range(1000000))
