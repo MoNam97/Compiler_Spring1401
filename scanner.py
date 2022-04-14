@@ -49,10 +49,10 @@ class DFA:
         (State.INITIAL, '=', State.EQUAL_SYMBOL),
         (State.EQUAL_SYMBOL, '=', State.EQUAL_SYMBOL2),
         (State.EQUAL_SYMBOL, Char.LETTER + Char.DIGIT + Char.WHITESPACE + Char.SYMBOL + Char.COMMENT_SYMBOL, State.EQUAL_SYMBOL3),
-        (State.INITIAL, '*', State.STAR)
-        (State.STAR, '*', State.STAR2)
-        (State.STAR, Char.LETTER + Char.DIGIT + Char.WHITESPACE + Char.SYMBOL + Char.COMMENT_SYMBOL, State.STAR3)
-        (State.INITIAL, Char.SYMBOL , State.SYMBOL_FINAL)
+        (State.INITIAL, '*', State.STAR),
+        (State.STAR, '*', State.STAR2),
+        (State.STAR, Char.LETTER + Char.DIGIT + Char.WHITESPACE + Char.SYMBOL + Char.COMMENT_SYMBOL, State.STAR3),
+        (State.INITIAL, Char.SYMBOL , State.SYMBOL_FINAL),
         
         # digit:
         (State.INITIAL, Char.DIGIT, State.DIGIT_INT),
