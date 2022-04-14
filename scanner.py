@@ -1,12 +1,12 @@
 from collections import namedtuple
 from enum import Enum
-from string import ascii_letters, digits, whitespace
+from string import ascii_letters, digits, whitespace, punctuation
 
 
 # TODO:
 # [ ] Handle Invalid Inputs
 # [x] next_state should consider sets
-# [ ] Remove last charracter hack
+# [x] Remove last charracter hack
 
 class TokenType(Enum):
     NUMBER = 0
@@ -37,6 +37,9 @@ class State(Enum):
 
     KEYWORD = StateItem(next(counter), False, False)
     KEYWORD_FINAL = StateItem(next(counter), TokenType.KEYWORD, True)
+    
+    WHITESPACE = StateItem(next(counter), False, False)
+    WHITESPACE_FINAL = StateItem(next(counter), TokenType.WHITESPACE, True)
     # GARBAGE       = StateItem(5, True, False)
 
 
@@ -72,6 +75,11 @@ class DFA:
         (State.INITIAL, Char.LETTER, State.KEYWORD),
         (State.KEYWORD, Char.LETTER + Char.DIGIT, State.KEYWORD),
         (State.KEYWORD, Char.WHITESPACE + Char.SYMBOL + Char.COMMENT_SYMBOL, State.KEYWORD_FINAL),
+        
+        # Whitespace:
+        (State.INITIAL, Char.WHITESPACE, State.WHITESPACE),
+        (State.WHITESPACE, Char.WHITESPACE, State.WHITESPACE),
+        (State.WHITESPACE, Char.LETTER + Char.DIGIT + punctuation , State.WHITESPACE_FINAL)
         # (state, character): state2,
     ]
 
