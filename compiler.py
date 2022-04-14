@@ -32,8 +32,6 @@ def run():
     with open("PA1-Testcases/T01/input.txt", "r") as f:
         lineno = 0
         while next_char := f.read(1):
-            if next_char == '\n':
-                lineno += 1
             lookahead = True
             while lookahead:
                 recognized_token, lookahead = scanner.get_next_token(next_char)
@@ -41,6 +39,8 @@ def run():
                     recognized_tokens.append((lineno, recognized_token))
                     if recognized_token[0] == TokenType.ID and recognized_token[1] not in symbols:
                         symbols.append(recognized_token[1])
+            if next_char == '\n':
+                lineno += 1
     write_symbol_table(symbols)
     write_tokens(recognized_tokens)
 

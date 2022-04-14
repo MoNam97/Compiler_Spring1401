@@ -110,11 +110,12 @@ class Scanner:
             print(self.buffer)
             Scanner.reset(self)
         if self.current.value.token_type:  # State is final
-            if self.current.value.lookahead:
+            lookahead = self.current.value.lookahead
+            if lookahead:
                 self.buffer = self.buffer[:-1]
             result = (self.current.value.token_type, self.buffer)
             if result[0] == TokenType.KEYWORD and self.buffer not in IDENTIFIERS:
                 result = (TokenType.ID, self.buffer)
             Scanner.reset(self)
-            return result, self.current.value.lookahead
+            return result, lookahead
         return None, False
