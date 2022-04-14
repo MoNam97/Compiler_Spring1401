@@ -80,9 +80,9 @@ class DFA:
         # (state, character): state2,
         
         # Comment:
-        (State.INITIAL, '#', State.COMMENT_ONELINE)
-        (State.COMMENT_ONELINE, '\n', State.COMMENT_FINAL)
-        (State.COMMENT_ONELINE, Char.ALL, State.COMMENT_ONELINE)
+        (State.INITIAL, '#', State.COMMENT_ONELINE),
+        (State.COMMENT_ONELINE, '\n', State.COMMENT_FINAL),
+        (State.COMMENT_ONELINE, Char.ALL, State.COMMENT_ONELINE),
     ]
 
     @staticmethod
