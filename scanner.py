@@ -1,6 +1,5 @@
 from collections import namedtuple
 from enum import Enum
-from gc import garbage
 from string import ascii_letters, digits, whitespace
 
 
@@ -25,14 +24,14 @@ class State(Enum):
     EQUAL_DIGIT_INT = StateItem(5, True, False)
     EQUAL_DIGIT_FLOAT = StateItem(6, True, False)
     EQUAL_DIGIT_FINAL = StateItem(7, True, False)
-    #GARBAGE       = StateItem(5, True, False)
+    # GARBAGE       = StateItem(5, True, False)
 
 
-class Char(Enum):
-    LETTER = set(ascii_letters)
-    DIGIT = set(digits)
-    WHITESPACE = set(whitespace)
-    SYMBOL = set('()[]:*+-=;,<')
+class Char:
+    LETTER = ascii_letters
+    DIGIT = digits
+    WHITESPACE = whitespace
+    SYMBOL = '()[]:*+-=;,<'
 
 
 class DFA:
@@ -50,12 +49,12 @@ class DFA:
         (State.INITIAL, '=', State.EQUAL_SYMBOL),
         (State.INITIAL, Char.DIGIT, State.EQUAL_DIGIT_INT),
         (State.EQUAL_SYMBOL, '=', State.EQUAL_SYMBOL2),
-        (State.EQUAL_SYMBOL, {Char.LETTER, Char.DIGIT, Char.WHITESPACE, Char.SYMBOL}, State.EQUAL_SYMBOL3),
+        (State.EQUAL_SYMBOL, Char.LETTER + Char.DIGIT + Char.WHITESPACE + Char.SYMBOL, State.EQUAL_SYMBOL3),
         (State.EQUAL_DIGIT_INT, Char.DIGIT, State.EQUAL_DIGIT_INT),
         (State.EQUAL_DIGIT_INT, '.', State.EQUAL_DIGIT_FLOAT),
         (State.EQUAL_DIGIT_FLOAT, Char.DIGIT, State.EQUAL_DIGIT_FLOAT),
-        (State.EQUAL_DIGIT_FLOAT, {Char.WHITESPACE, Char.SYMBOL}, State.EQUAL_DIGIT_FINAL),
-        (State.EQUAL_DIGIT_INT, {Char.WHITESPACE, Char.SYMBOL}, State.EQUAL_DIGIT_FINAL),
+        (State.EQUAL_DIGIT_FLOAT, Char.WHITESPACE + Char.SYMBOL, State.EQUAL_DIGIT_FINAL),
+        (State.EQUAL_DIGIT_INT, Char.WHITESPACE + Char.SYMBOL, State.EQUAL_DIGIT_FINAL),
         # (state, character): state2,
     ]
 
@@ -69,8 +68,8 @@ class DFA:
 class Scanner:
     def __init__(self):
         Scanner.reset(self)
-    
-    @staticmethod   
+
+    @staticmethod
     def reset(self):
         self.current = DFA.initial_state  # INITIAL
         self.buffer = ""
@@ -85,6 +84,3 @@ class Scanner:
             result = (TokenType.SYMBOL, self.buffer[-1])
             Scanner.reset(self)
             return result
-    
-        
-
