@@ -21,9 +21,9 @@ class State(Enum):
     EQUAL_SYMBOL = StateItem(2, False, False)
     EQUAL_SYMBOL2 = StateItem(3, True, False)
     EQUAL_SYMBOL3 = StateItem(4, True, True)
-    EQUAL_DIGIT_INT = StateItem(5, True, False)
-    EQUAL_DIGIT_FLOAT = StateItem(6, True, False)
-    EQUAL_DIGIT_FINAL = StateItem(7, True, False)
+    EQUAL_DIGIT_INT = StateItem(5, False, False)
+    EQUAL_DIGIT_FLOAT = StateItem(6, False, False)
+    EQUAL_DIGIT_FINAL = StateItem(7, True, True)
     # GARBAGE       = StateItem(5, True, False)
 
 
