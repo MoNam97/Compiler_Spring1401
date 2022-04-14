@@ -7,8 +7,16 @@ from utils import IDENTIFIERS, TokenType
 
 
 def write_tokens(recognized_tokens):
-    for lineno, token in recognized_tokens:
-        print(f"{lineno}. ({token[0].name}, {token[1]})")
+    with open("tokens.txt", "w+") as f:
+        last_line = -1
+        for lineno, token in recognized_tokens:
+            if token[0] != TokenType.WHITESPACE:
+                if last_line < lineno:
+                    if lineno != 0:
+                        f.write('\n')
+                    f.write(f"{lineno + 1}. ")
+                    last_line = lineno
+                f.write(f"({token[0].name}, {token[1]}) ")
 
 
 def write_symbol_table(symbols):
@@ -30,7 +38,7 @@ def run():
             while lookahead:
                 recognized_token, lookahead = scanner.get_next_token(next_char)
                 if recognized_token:
-                    recognized_tokens.append((lineno + 1, recognized_token))
+                    recognized_tokens.append((lineno, recognized_token))
                     if recognized_token[0] == TokenType.ID and recognized_token[1] not in symbols:
                         symbols.append(recognized_token[1])
     write_symbol_table(symbols)
