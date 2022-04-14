@@ -51,9 +51,11 @@ class DFA:
         (State.INITIAL, '-', State.ACC1),
         (State.INITIAL, '<', State.ACC1),
         (State.INITIAL, '=', State.EQUAL_SYMBOL),
-        (State.INITIAL, Char.DIGIT, State.EQUAL_DIGIT_INT),
         (State.EQUAL_SYMBOL, '=', State.EQUAL_SYMBOL2),
         (State.EQUAL_SYMBOL, Char.LETTER + Char.DIGIT + Char.WHITESPACE + Char.SYMBOL, State.EQUAL_SYMBOL3),
+        
+        # digit:
+        (State.INITIAL, Char.DIGIT, State.EQUAL_DIGIT_INT),
         (State.EQUAL_DIGIT_INT, Char.DIGIT, State.EQUAL_DIGIT_INT),
         (State.EQUAL_DIGIT_INT, '.', State.EQUAL_DIGIT_FLOAT),
         (State.EQUAL_DIGIT_FLOAT, Char.DIGIT, State.EQUAL_DIGIT_FLOAT),
