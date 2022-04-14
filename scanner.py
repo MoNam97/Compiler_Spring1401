@@ -12,7 +12,7 @@ from lexical_errors import (
 from utils import TokenType, IDENTIFIERS, Char
 
 # TODO:
-# [ ] Handle Invalid Inputs
+# [x] Handle Invalid Inputs
 # [x] next_state should consider sets
 # [x] Remove last charracter hack
 
@@ -39,7 +39,6 @@ class State(Enum):
 
     WHITESPACE = StateItem(next(counter), False, False)
     WHITESPACE_FINAL = StateItem(next(counter), TokenType.WHITESPACE, True)
-    # GARBAGE       = StateItem(5, True, False)
 
     COMMENT_ONELINE = StateItem(next(counter), False, False)
     COMMENT_MULTILINE1 = StateItem(next(counter), False, False)
@@ -111,7 +110,7 @@ class Scanner:
     def reset(self):
         self.current = DFA.initial_state  # INITIAL
         self.buffer = ""
-
+# if we need to send lookahead back to compiler (like in case if /2 or /\n) can we do this and raise an error?
     def get_next_token(self, next_char):
         prev_state = self.current
         self.current = DFA.get_next_state(self.current, next_char)

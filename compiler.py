@@ -1,5 +1,6 @@
-# MN
-# DE
+# Danial Erfanian - 97110155
+# Mohamad Namdar  - 97106302
+
 from copy import copy
 
 from lexical_errors import BaseLexicalError
@@ -29,13 +30,13 @@ def write_symbol_table(symbols):
 def write_lexical_errors(lexical_errors):
     print(lexical_errors)
 
-
+# "PA1-Testcases/T01/input.txt"
 def run():
     scanner = Scanner()
     recognized_tokens = []
     symbols = copy(IDENTIFIERS)
     lexical_errors = []
-    with open("PA1-Testcases/T01/input.txt", "r") as f:
+    with open("input.txt", "r") as f:
         lineno = 0
         while True:
             next_char = f.read(1) or Char.EOF
@@ -48,7 +49,7 @@ def run():
                         if recognized_token[0] == TokenType.ID and recognized_token[1] not in symbols:
                             symbols.append(recognized_token[1])
             except BaseLexicalError as e:
-                lexical_errors.append(e)
+                lexical_errors.append((lineno, e))
             if next_char == '\n':
                 lineno += 1
             if next_char == Char.EOF:
