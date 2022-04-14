@@ -58,7 +58,7 @@ class DFA:
          State.EQUAL_SYMBOL3),
         (State.INITIAL, '*', State.STAR),
         (State.STAR, '*', State.STAR2),
-        (State.STAR, Char.LETTER + Char.DIGIT + Char.WHITESPACE + Char.SYMBOL + '#', State.STAR3),
+        (State.STAR, Char.LETTER + Char.DIGIT + Char.WHITESPACE + Char.SYMBOL + '#' + Char.EOF, State.STAR3),
         (State.INITIAL, Char.SYMBOL, State.SYMBOL_FINAL),
 
         # digit:
@@ -66,18 +66,18 @@ class DFA:
         (State.DIGIT_INT, Char.DIGIT, State.DIGIT_INT),
         (State.DIGIT_INT, '.', State.DIGIT_FLOAT),
         (State.DIGIT_FLOAT, Char.DIGIT, State.DIGIT_FLOAT),
-        (State.DIGIT_FLOAT, Char.WHITESPACE + Char.SYMBOL + Char.COMMENT_SYMBOL, State.DIGIT_FINAL),
-        (State.DIGIT_INT, Char.WHITESPACE + Char.SYMBOL + Char.COMMENT_SYMBOL, State.DIGIT_FINAL),
+        (State.DIGIT_FLOAT, Char.WHITESPACE + Char.SYMBOL + Char.COMMENT_SYMBOL + Char.EOF, State.DIGIT_FINAL),
+        (State.DIGIT_INT, Char.WHITESPACE + Char.SYMBOL + Char.COMMENT_SYMBOL + Char.EOF, State.DIGIT_FINAL),
 
         # Letter:
         (State.INITIAL, Char.LETTER, State.KEYWORD),
         (State.KEYWORD, Char.LETTER + Char.DIGIT, State.KEYWORD),
-        (State.KEYWORD, Char.WHITESPACE + Char.SYMBOL + Char.COMMENT_SYMBOL, State.KEYWORD_FINAL),
+        (State.KEYWORD, Char.WHITESPACE + Char.SYMBOL + Char.COMMENT_SYMBOL + Char.EOF, State.KEYWORD_FINAL),
 
         # Whitespace:
         (State.INITIAL, Char.WHITESPACE, State.WHITESPACE),
         (State.WHITESPACE, Char.WHITESPACE, State.WHITESPACE),
-        (State.WHITESPACE, Char.LETTER + Char.DIGIT + punctuation, State.WHITESPACE_FINAL),
+        (State.WHITESPACE, Char.LETTER + Char.DIGIT + punctuation + Char.EOF, State.WHITESPACE_FINAL),
 
         # Comment:
         (State.INITIAL, '#', State.COMMENT_ONELINE),

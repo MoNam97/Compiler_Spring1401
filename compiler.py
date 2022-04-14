@@ -51,7 +51,7 @@ def run():
                 lexical_errors.append(e)
             if next_char == '\n':
                 lineno += 1
-            if not next_char:
+            if next_char == Char.EOF:
                 break
 
     write_symbol_table(symbols)
