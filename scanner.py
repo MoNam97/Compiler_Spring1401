@@ -14,8 +14,8 @@ from utils import TokenType, IDENTIFIERS, Char
 # [x] Handle Invalid Inputs
 # [x] next_state should consider sets
 # [x] Remove last charracter hack
-# [ ] handle the INITIAL -> EOF token
-# [ ] error handling for errors starting with '/' + '*$' is NOT an Unmatched comment
+# [x] handle the INITIAL -> EOF token
+# [x] error handling for errors starting with '/' + '*$' is NOT an Unmatched comment
 
 StateItem = namedtuple('State', ['id', 'token_type', 'lookahead'])
 counter = iter(range(1000000))
@@ -52,7 +52,8 @@ class State(Enum):
 class DFA:
     initial_state = State.INITIAL
     next = [
-        (State.INITIAL, Char.EOF + '=', State.EQUAL_SYMBOL),
+        (State.INITIAL, '=', State.EQUAL_SYMBOL),
+        (State.INITIAL, Char.EOF, State.INITIAL),
         (State.EQUAL_SYMBOL, '=', State.EQUAL_SYMBOL2),
         (State.EQUAL_SYMBOL, Char.LETTER + Char.DIGIT + Char.WHITESPACE + Char.SYMBOL + Char.COMMENT_SYMBOL,
          State.EQUAL_SYMBOL3),
