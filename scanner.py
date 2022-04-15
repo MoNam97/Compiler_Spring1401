@@ -8,7 +8,7 @@ from lexical_errors import (
     UnmatchedCommentError,
     UnclosedCommentError
 )
-from utils import TokenType, IDENTIFIERS, Char
+from utils import TokenType, KEYWORDS, Char
 
 # TODO:
 # [x] Handle Invalid Inputs
@@ -52,10 +52,10 @@ class State(Enum):
 class DFA:
     initial_state = State.INITIAL
     next = [
-        (State.INITIAL, '=', State.EQUAL_SYMBOL),
         (State.INITIAL, Char.EOF, State.INITIAL),
+        (State.INITIAL, '=', State.EQUAL_SYMBOL),
         (State.EQUAL_SYMBOL, '=', State.EQUAL_SYMBOL2),
-        (State.EQUAL_SYMBOL, Char.LETTER + Char.DIGIT + Char.WHITESPACE + Char.SYMBOL + Char.COMMENT_SYMBOL,
+        (State.EQUAL_SYMBOL, Char.LETTER + Char.DIGIT + Char.WHITESPACE + Char.SYMBOL + Char.COMMENT_SYMBOL + Char.EOF,
          State.EQUAL_SYMBOL3),
         (State.INITIAL, '*', State.STAR),
         (State.STAR, '*', State.STAR2),
@@ -113,7 +113,6 @@ class Scanner:
         self.current = DFA.initial_state  # INITIAL
         self.buffer = ""
 
-    # if we need to send lookahead back to compiler (like in case if /2 or /\n) can we do this and raise an error?
     def get_next_token(self, next_char):
         prev_state = self.current
         self.current = DFA.get_next_state(self.current, next_char)
@@ -127,7 +126,7 @@ class Scanner:
             if lookahead:
                 self.buffer = self.buffer[:-1]
             result = (self.current.value.token_type, self.buffer)
-            if result[0] == TokenType.KEYWORD and self.buffer not in IDENTIFIERS:
+            if result[0] == TokenType.KEYWORD and self.buffer not in KEYWORDS:
                 result = (TokenType.ID, self.buffer)
             Scanner.reset(self)
             return result, lookahead
@@ -144,7 +143,6 @@ class Scanner:
     }
 
     def handle_panic_mode(self, prev_state: State, text: str):
-        # print(prev_state, text)
         if prev_state == State.STAR and text == "*/":
             Handler = UnmatchedCommentError
         else:

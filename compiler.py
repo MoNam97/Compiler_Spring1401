@@ -5,7 +5,7 @@ from copy import copy
 
 from lexical_errors import BaseLexicalError
 from scanner import Scanner
-from utils import IDENTIFIERS, TokenType, Char
+from utils import KEYWORDS, TokenType, Char
 
 
 def write_tokens(recognized_tokens):
@@ -46,7 +46,7 @@ def write_lexical_errors(lexical_errors):
 def run():
     scanner = Scanner()
     recognized_tokens = []
-    symbols = copy(IDENTIFIERS)
+    symbols = copy(KEYWORDS)
     lexical_errors = []
     with open("input.txt", "r") as f:
         last_lineno = 0

@@ -1,7 +1,7 @@
 from enum import Enum
 from string import ascii_letters, digits, whitespace, printable
 
-IDENTIFIERS = ['break', 'continue', 'def', 'else', 'if', 'return', 'while']
+KEYWORDS = ['break', 'continue', 'def', 'else', 'if', 'return', 'while']
 
 
 class TokenType(Enum):
