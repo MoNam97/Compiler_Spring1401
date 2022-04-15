@@ -662,3 +662,4 @@ symbol_table.txt
 lexical_errors.txt
 tokens.txt
 input.txt
+*.zip
