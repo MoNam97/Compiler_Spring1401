@@ -120,7 +120,7 @@ class Scanner:
         if self.current is None:
             text = self.buffer
             Scanner.reset(self)
-            self.handle_panic_mode(prev_state, text)
+            return self.handle_panic_mode(prev_state, text)
         if self.current.value.token_type:  # State is final
             lookahead = self.current.value.lookahead
             if lookahead:
@@ -150,4 +150,4 @@ class Scanner:
             Handler = self.error_handler.get(prev_state, InvalidInputError)
         if prev_state.value.lookahead:
             text = text[:-1]
-        raise Handler(text=text)
+        return Handler(text=text), prev_state.value.lookahead

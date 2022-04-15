@@ -54,17 +54,16 @@ def run():
         while True:
             next_char = f.read(1) or Char.EOF
             lookahead = True
-            try:
-                while lookahead:
-                    recognized_token, lookahead = scanner.get_next_token(next_char)
-                    if recognized_token:
-                        recognized_tokens.append((last_lineno, recognized_token))
-                        if recognized_token[0] == TokenType.ID and recognized_token[1] not in symbols:
-                            symbols.append(recognized_token[1])
-                        last_lineno = lineno
-            except BaseLexicalError as e:
-                lexical_errors.append((last_lineno, e))
-                last_lineno = lineno
+            while lookahead:
+                recognized_token, lookahead = scanner.get_next_token(next_char)
+                if isinstance(recognized_token, BaseLexicalError):
+                    lexical_errors.append((last_lineno, recognized_token))
+                    last_lineno = lineno
+                elif recognized_token:
+                    recognized_tokens.append((last_lineno, recognized_token))
+                    if recognized_token[0] == TokenType.ID and recognized_token[1] not in symbols:
+                        symbols.append(recognized_token[1])
+                    last_lineno = lineno
             if next_char == '\n':
                 lineno += 1
             if next_char == Char.EOF:
