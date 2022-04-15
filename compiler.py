@@ -12,7 +12,7 @@ def write_tokens(recognized_tokens):
     with open("tokens.txt", "w+") as f:
         last_line = -1
         for lineno, token in recognized_tokens:
-            if token[0] != TokenType.WHITESPACE:
+            if token[0] not in [TokenType.WHITESPACE, TokenType.COMMENT]:
                 if last_line < lineno:
                     if lineno != 0:
                         f.write('\n')
@@ -46,7 +46,7 @@ def run():
     recognized_tokens = []
     symbols = copy(IDENTIFIERS)
     lexical_errors = []
-    with open("PA1-Testcases/T01/input.txt", "r") as f:
+    with open("input.txt", "r") as f:
         lineno = 0
         while True:
             next_char = f.read(1) or Char.EOF

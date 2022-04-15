@@ -4,7 +4,6 @@ from string import punctuation
 
 from lexical_errors import (
     InvalidNumberError,
-    BaseLexicalError,
     InvalidInputError,
     UnmatchedCommentError,
     UnclosedCommentError
@@ -53,7 +52,7 @@ class State(Enum):
 class DFA:
     initial_state = State.INITIAL
     next = [
-        (State.INITIAL, '=', State.EQUAL_SYMBOL),
+        (State.INITIAL, Char.EOF + '=', State.EQUAL_SYMBOL),
         (State.EQUAL_SYMBOL, '=', State.EQUAL_SYMBOL2),
         (State.EQUAL_SYMBOL, Char.LETTER + Char.DIGIT + Char.WHITESPACE + Char.SYMBOL + Char.COMMENT_SYMBOL,
          State.EQUAL_SYMBOL3),
@@ -112,7 +111,8 @@ class Scanner:
     def reset(self):
         self.current = DFA.initial_state  # INITIAL
         self.buffer = ""
-# if we need to send lookahead back to compiler (like in case if /2 or /\n) can we do this and raise an error?
+
+    # if we need to send lookahead back to compiler (like in case if /2 or /\n) can we do this and raise an error?
     def get_next_token(self, next_char):
         prev_state = self.current
         self.current = DFA.get_next_state(self.current, next_char)
@@ -136,15 +136,18 @@ class Scanner:
         State.DIGIT_INT: InvalidNumberError,
         State.DIGIT_FLOAT: InvalidNumberError,
         State.KEYWORD: InvalidInputError,
-        State.STAR: UnmatchedCommentError,
+        State.STAR: InvalidInputError,
         State.COMMENT_MULTILINE2: UnclosedCommentError,
         State.COMMENT_MULTILINE1: InvalidInputError,
         State.INITIAL: InvalidInputError
     }
 
     def handle_panic_mode(self, prev_state: State, text: str):
-        print(prev_state, text)
-        Handler = self.error_handler.get(prev_state, InvalidInputError)
+        # print(prev_state, text)
+        if prev_state == State.STAR and text == "*/":
+            Handler = UnmatchedCommentError
+        else:
+            Handler = self.error_handler.get(prev_state, InvalidInputError)
         if prev_state.value.lookahead:
             text = text[:-1]
         raise Handler(text=text)
