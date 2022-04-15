@@ -31,6 +31,8 @@ def write_lexical_errors(lexical_errors):
     with open("lexical_errors.txt", "w+") as f:
         first_line = True
         last_line = -1
+        if len(lexical_errors) == 0:
+            f.write('There is no lexical error.')
         for lineno, error in lexical_errors:
             if last_line < lineno:
                 if not first_line:

@@ -19,6 +19,12 @@ class InvalidNumberError(BaseLexicalError):
 class UnclosedCommentError(BaseLexicalError):
     msg = "Unclosed comment"
 
+    def __init__(self, text):
+        if len(text) > 10:
+            self.text = text[:10] + "..."
+        else:
+            self.text = text
+
 
 class UnmatchedCommentError(BaseLexicalError):
     msg = "Unmatched comment"
