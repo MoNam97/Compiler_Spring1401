@@ -1,24 +1,22 @@
 # Danial Erfanian - 97110155
 # Mohamad Namdar  - 97106302
-import itertools
+
 from copy import copy
 
-from lexical_errors import BaseLexicalError
 from scanner import Scanner
-from utils import KEYWORDS, TokenType, Char
+from utils import KEYWORDS
 
 
 def write_tokens(recognized_tokens):
     with open("tokens.txt", "w+") as f:
         last_line = -1
         for lineno, token in recognized_tokens:
-            if token[0] not in [TokenType.WHITESPACE, TokenType.COMMENT]:
-                if last_line < lineno:
-                    if last_line != -1:
-                        f.write('\n')
-                    f.write(f"{lineno + 1}. ")
-                    last_line = lineno
-                f.write(f"({token[0].name}, {token[1]}) ")
+            if last_line < lineno:
+                if last_line != -1:
+                    f.write('\n')
+                f.write(f"{lineno + 1}. ")
+                last_line = lineno
+            f.write(f"({token[0].name}, {token[1]}) ")
 
 
 def write_symbol_table(symbols):
@@ -42,37 +40,18 @@ def write_lexical_errors(lexical_errors):
                 last_line = lineno
             f.write(f" {error}")
 
-
-def run():
-    scanner = Scanner()
+if __name__ == '__main__':
     recognized_tokens = []
     symbols = copy(KEYWORDS)
-    lexical_errors = []
-    with open("input.txt", "r") as f:
-        last_lineno = 0
-        lineno = 0
-        while True:
-            next_char = f.read(1) or Char.EOF
-            lookahead = True
-            while lookahead:
-                recognized_token, lookahead = scanner.get_next_token(next_char)
-                if isinstance(recognized_token, BaseLexicalError):
-                    lexical_errors.append((last_lineno, recognized_token))
-                    last_lineno = lineno
-                elif recognized_token:
-                    recognized_tokens.append((last_lineno, recognized_token))
-                    if recognized_token[0] == TokenType.ID and recognized_token[1] not in symbols:
-                        symbols.append(recognized_token[1])
-                    last_lineno = lineno
-            if next_char == '\n':
-                lineno += 1
-            if next_char == Char.EOF:
-                break
-
+    scanner = Scanner("input.txt", symbols)
+    lookahead = False
+    
+    while True:
+        token, lookahead = scanner.get_next_token(lookahead)
+        if not token:
+            break
+        recognized_tokens.append(token)
+    
     write_symbol_table(symbols)
     write_tokens(recognized_tokens)
-    write_lexical_errors(lexical_errors)
-
-
-if __name__ == '__main__':
-    run()
+    write_lexical_errors(scanner.lexical_errors)    

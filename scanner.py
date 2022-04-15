@@ -3,6 +3,7 @@ from enum import Enum
 from string import punctuation
 
 from lexical_errors import (
+    BaseLexicalError,
     InvalidNumberError,
     InvalidInputError,
     UnmatchedCommentError,
@@ -103,17 +104,25 @@ class DFA:
 
 class Scanner:
     current = None
-    buffer = None
+    buffer  = None
+    symbols = None
+    f       = None
+    last_lineno = 0
+    lineno = 0
+    last_char = None
+    lexical_errors = []
 
-    def __init__(self):
+    def __init__(self, filepath, symboltable):
         Scanner.reset(self)
+        self.symbols = symboltable
+        self.f = open(filepath, "r")
 
     @staticmethod
     def reset(self):
         self.current = DFA.initial_state  # INITIAL
         self.buffer = ""
 
-    def get_next_token(self, next_char):
+    def eval_next_char(self, next_char):
         prev_state = self.current
         self.current = DFA.get_next_state(self.current, next_char)
         self.buffer = self.buffer + next_char
@@ -150,3 +159,29 @@ class Scanner:
         if prev_state.value.lookahead:
             text = text[:-1]
         return Handler(text=text), prev_state.value.lookahead
+    
+    def get_next_token(self, lookahead: bool):
+            while True:
+                if not lookahead:
+                    next_char = self.f.read(1) or Char.EOF
+                    self.last_char = next_char
+                else:
+                    next_char = self.last_char
+                recognized_token, lookahead = self.eval_next_char(next_char)
+                if isinstance(recognized_token, BaseLexicalError):
+                    self.lexical_errors.append((self.last_lineno, recognized_token))
+                    self.last_lineno = self.lineno
+                    continue
+                elif recognized_token:
+                    current_token = (self.last_lineno, recognized_token)
+                    if recognized_token[0] == TokenType.ID and recognized_token[1] not in self.symbols:
+                        self.symbols.append(recognized_token[1])
+                    self.last_lineno = self.lineno
+                    if recognized_token[0] not in [TokenType.WHITESPACE, TokenType.COMMENT]:
+                        return current_token, lookahead
+                    else: continue
+                if next_char == '\n':
+                    self.lineno += 1
+                if next_char == Char.EOF:
+                    self.f.close()
+                    return None, False
