@@ -28,18 +28,18 @@ def write_symbol_table(symbols):
 
 
 def write_lexical_errors(lexical_errors):
-    print(lexical_errors)
     with open("lexical_errors.txt", "w+") as f:
         first_line = True
         last_line = -1
-        for lineno , error in lexical_errors:
+        for lineno, error in lexical_errors:
             if last_line < lineno:
                 if not first_line:
                     f.write('\n')
                 first_line = False
                 f.write(f"{lineno + 1}.")
-                last_line = lineno            
+                last_line = lineno
             f.write(f" {error}")
+
 
 def run():
     scanner = Scanner()

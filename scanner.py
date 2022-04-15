@@ -43,8 +43,8 @@ class State(Enum):
     WHITESPACE_FINAL = StateItem(next(counter), TokenType.WHITESPACE, True)
 
     COMMENT_ONELINE = StateItem(next(counter), False, False)
-    COMMENT_MULTILINE1 = StateItem(next(counter), False, False)
-    COMMENT_MULTILINE2 = StateItem(next(counter), False, False)
+    COMMENT_MULTILINE1 = StateItem(next(counter), False, True)
+    COMMENT_MULTILINE2 = StateItem(next(counter), False, True)
     COMMENT_MULTILINE3 = StateItem(next(counter), False, False)
     COMMENT_FINAL = StateItem(next(counter), TokenType.COMMENT, True)
     COMMENT_MULTILINE_FINAL = StateItem(next(counter), TokenType.COMMENT, False)
@@ -142,7 +142,9 @@ class Scanner:
         State.INITIAL: InvalidInputError
     }
 
-    def handle_panic_mode(self, prev_state, text):
-        print(text)
-        Handler: BaseLexicalError = self.error_handler.get(prev_state, InvalidInputError)
+    def handle_panic_mode(self, prev_state: State, text: str):
+        print(prev_state, text)
+        Handler = self.error_handler.get(prev_state, InvalidInputError)
+        if prev_state.value.lookahead:
+            text = text[:-1]
         raise Handler(text=text)
