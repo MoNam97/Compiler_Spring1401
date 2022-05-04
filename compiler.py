@@ -4,7 +4,7 @@
 from copy import copy
 
 from scanner import Scanner
-from utils import KEYWORDS
+from utils import KEYWORDS, TokenType
 
 
 def write_tokens(recognized_tokens):
@@ -48,9 +48,9 @@ if __name__ == '__main__':
     
     while True:
         token, lookahead = scanner.get_next_token(lookahead)
-        if not token:
-            break
         recognized_tokens.append(token)
+        if token[1][0] == TokenType.EOF:
+            break
     
     write_symbol_table(symbols)
     write_tokens(recognized_tokens)
