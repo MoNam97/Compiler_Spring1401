@@ -1,5 +1,6 @@
 from enum import Enum
 from string import ascii_letters, digits, whitespace, printable
+from tokenize import Double
 
 KEYWORDS = ['break', 'continue', 'def', 'else', 'if', 'return', 'while']
 
@@ -13,8 +14,64 @@ class TokenType(Enum):
     WHITESPACE = 5
     EOF = 6
 
-#class Non_Terminal(Enum):
-
+class NonTerminal(Enum):
+    Program         = 0
+    Statements      = 1
+    Statement       = 2
+    Simple_stmt     = 3
+    Compound_stmt   = 4
+    Assignment_Call = 5
+    B               = 6
+    C               = 7
+    List_Rest       = 8
+    Return_stmt     = 9
+    Return_Value    = 10
+    Global_stmt     = 11
+    Function_def    = 12
+    Params          = 13
+    Params_Prime    = 14
+    If_stmt         = 15
+    Else_block      = 16
+    Iteration_stmt  = 17
+    Relational_Expression = 18
+    Relop           = 19
+    Expression      = 20
+    Expression_Prime= 21
+    Term            = 22
+    Term_Prime      = 23
+    Factor          = 24
+    Power           = 25
+    Primary         = 26
+    Arguments       = 27
+    Arguments_Prime = 28
+    Atom            = 29
+    
+class Terminal(Enum):
+    Semicolon       = 0  # ;
+    Break           = 1
+    Continue        = 2
+    ID              = 3
+    EqualSign       = 4  # =
+    BracketOpen     = 5  # [
+    BracketsClose   = 6  # ] 
+    ParenthesesOpen = 7  # (
+    ParenthesesClose= 8  # )
+    Comma           = 9  # , 
+    Return          = 10
+    Global          = 11
+    Def             = 12
+    Colon           = 13 # :
+    If              = 14
+    Else            = 15
+    While           = 16
+    DoubleEqualSign = 17 # ==
+    SmallerSign     = 18 # <
+    PlusSign        = 19 # +
+    MinusSign       = 20 # -
+    StarSign        = 21 #
+    DoubleStarSign  = 22 # **
+    NUM             = 23 
+    epsilon         = 24 #ε
 
 class Char:
     LETTER = ascii_letters
