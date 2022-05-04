@@ -1,8 +1,11 @@
 
 from collections import deque
+from lib2to3.pgen2 import token
 from scanner import Scanner
 from utils import TokenType, NonTerminal
 from anytree import Node, RenderTree
+
+
 class ParseTable:
     next = {
         (NonTerminal.Program, 'break'):         (NonTerminal.Statements),
@@ -207,6 +210,7 @@ class ParseTable:
         (NonTerminal.Atom, TokenType.NUMBER):   (TokenType.NUMBER)
     }
 
+
 class Parser:
     scanner = None
     current_token = None
@@ -220,7 +224,24 @@ class Parser:
     def parse(self):
         lookahead = False
         while True:
-            self.current_token, lookahead = self.scanner.get_next_token(lookahead)
+            token_pack, lookahead   = self.scanner.get_next_token(lookahead)
             
-            if self.current_token[1][0] == TokenType.EOF:
+            next_branch = self.next_move(token_pack[1])
+            
+            # if next_branch -> None
+            # if next_branch -> -1
+            # if next_branch -> something
+            
+            if token_pack[1][0] == TokenType.EOF:
                 break
+            
+    def next_move(self, token_pack):
+        token = token_pack[0]
+        lexim = token_pack[1]
+        if token in (TokenType.KEYWORD, TokenType.SYMBOL):
+            if (self.parsestack[-1], lexim) in ParseTable.next:
+                return ParseTable.next[(self.parsestack[-1], lexim)]
+        else:
+            if (self.parsestack[-1], token) in ParseTable.next:
+                return ParseTable.next[(self.parsestack[-1], token)]
+        return None
