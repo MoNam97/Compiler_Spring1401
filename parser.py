@@ -25,6 +25,7 @@ class Parser:
     parseTreeStack = [parseTree]
     syntaxError = []
     lookahead = False
+    current_token = None
 
     def __init__(self, scanner: Scanner):
         self.scanner = scanner
@@ -35,13 +36,13 @@ class Parser:
             print("%s%s" % (pre, node.name))
 
     def parse(self):
-        token_pack = self.get_next_token()
+        self.go_next_token()
         while True:
             self.print_tree()
             if isinstance(self.parseStack[-1], NonTerminal):
-                self.derivate_non_terminal(token_pack)
+                self.derivate_non_terminal(self.current_token)
             else:
-                if not self.sameTerminal(token_pack[1]):
+                if not self.sameTerminal(self.current_token[1]):
                     self.syntaxError.append((3, self.parseStack[-1]))
                     self.parseStack.pop()
                     self.parseTreeStack.pop()
@@ -49,9 +50,9 @@ class Parser:
                     terminal = self.parseStack.pop()
                     node: Node = self.parseTreeStack.pop()
                     if terminal == TokenType.ID:
-                        node.name = '(%s, %s)' % (TokenType.ID.name, token_pack[1][1])
-                    token_pack = self.get_next_token()
-            if token_pack[1][0] == TokenType.EOF and len(self.parseStack) == 1:
+                        node.name = '(%s, %s)' % (TokenType.ID.name, self.current_token[1][1])
+                    self.go_next_token()
+            if self.current_token[1][0] == TokenType.EOF and len(self.parseStack) == 1:
                 Node('$', parent=self.parseTree)
                 break
 
@@ -90,7 +91,7 @@ class Parser:
             self.syntaxError.append((4, token_pack))  # errorType , (lineno, token)
         else:
             self.syntaxError.append((1, token_pack))
-
+            self.go_next_token()
 
     def derivate_non_terminal(self, token_pack):
         next_branch = self.next_move(token_pack[1])
@@ -113,8 +114,9 @@ class Parser:
                 self.parseStack.append(arg)
                 self.parseTreeStack.append(node)
 
-    def get_next_token(self):
+    def go_next_token(self):
         result, self.lookahead = self.scanner.get_next_token(self.lookahead)
+        self.current_token = result
         return result
 
 
