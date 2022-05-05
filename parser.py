@@ -45,7 +45,8 @@ class Parser:
                 if not self.sameTerminal(self.current_token[1]):
                     self.syntaxError.append((3, self.current_token, self.parseStack[-1]))
                     self.parseStack.pop()
-                    self.parseTreeStack.pop()
+                    node = self.parseTreeStack.pop()
+                    node.parent = Node("seektir")
                 else:
                     terminal = self.parseStack.pop()
                     node: Node = self.parseTreeStack.pop()
