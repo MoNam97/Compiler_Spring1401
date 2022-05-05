@@ -14,7 +14,7 @@ from utils import TokenType, NonTerminal, KEYWORDS, EPSILON
 # [x] Handle traling $
 # [x] Fix extra single qoutes in parse tree
 # [ ] Consider non empty stack when EOF received
-
+# [ ] Write to files
 class Parser:
     scanner = None
     # current_token = None
