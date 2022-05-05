@@ -1,9 +1,9 @@
 from collections import deque
+from time import sleep
 
-from anytree import Node
+from anytree import Node, RenderTree
 
-from scanner import Scanner
-from utils import TokenType, NonTerminal
+from utils import TokenType, NonTerminal, Char
 
 
 # TODO:
@@ -17,11 +17,16 @@ class Parser:
     # current_token = None
     parseStack = deque()
     parseTree = Node("Program")
+    parseTreeStack = [parseTree]
     syntaxError = []
 
-    def __init__(self, filepath, symbol):
-        self.scanner = Scanner(filepath, symbol)
+    def __init__(self, scanner):
+        self.scanner = scanner
         self.parseStack.extend([TokenType.EOF, NonTerminal.Program])
+
+    def print_tree(self):
+        for pre, fill, node in RenderTree(self.parseTree):
+            print("%s%s" % (pre, node.name))
 
     def parse(self):
         lookahead = False
@@ -29,28 +34,36 @@ class Parser:
         while True:
             if isinstance(self.parseStack[-1], NonTerminal):
                 next_branch = self.next_move(token_pack[1])
-                print(next_branch)
+                self.print_tree()
+                sleep(0.1)
                 if next_branch is None:
-                    if token_pack[1][0] == TokenType.EOF:
-                        self.syntaxError.append((4, token_pack))  # errorType , (lineno, token)
-                    else:
-                        self.syntaxError.append((1, token_pack))
-                        continue
+                    self.panic_mode(token_pack)
+                    continue
                 elif next_branch == -1:
                     self.syntaxError.append((2, token_pack))
                     self.parseStack.pop()
+                    self.parseTreeStack.pop()
                 else:
-                    print(next_branch)
+                    parent = self.parseTreeStack[-1]
+                    self.parseTreeStack.pop()
+                    self.parseStack.pop()
+                    nodes = []
                     for arg in next_branch:
-                        self.make_node(arg, token_pack[1])
-                    for arg in next_branch[::-1]:
+                        node = self.make_node(arg, token_pack[1], parent)
+                        assert node is not None
+                        nodes.append(node)
+                    for arg, node in zip(next_branch[::-1], nodes[::-1]):
                         self.parseStack.append(arg)
+                        self.parseTreeStack.append(node)
+                    sleep(0.1)
             else:
                 if not self.sameTerminal(token_pack[1]):
                     self.syntaxError.append((3, token_pack))
                     self.parseStack.pop()
+                    self.parseTreeStack.pop()
                 else:
                     self.parseStack.pop()
+                    self.parseTreeStack.pop()
                     token_pack, lookahead = self.scanner.get_next_token(lookahead)
 
             if token_pack[1][0] == TokenType.EOF:
@@ -67,12 +80,15 @@ class Parser:
                 return ParseTable.next[(self.parseStack[-1], token)]
         return None
 
-    def make_node(self, arg, token):
+    def make_node(self, arg, token, parent):
+        node = None
         if isinstance(arg, NonTerminal):
-            node = Node(arg.name, parent=self.parseStack[-1])
-        else:
-            if isinstance(arg, TokenType):
-                node = Node((token[0].name, token[1]), parent=self.parseStack[-1])
+            node = Node(arg.name, parent=parent)
+        elif isinstance(arg, TokenType):
+            node = Node((token[0].name, token[1]), parent=parent)
+        elif isinstance(arg, str) and arg in Char.SYMBOL:
+            node = Node((TokenType.SYMBOL.name, arg), parent=parent)
+        return node
 
     def sameTerminal(self, token_pack):
         token = token_pack[0]
@@ -144,6 +160,12 @@ class Parser:
         elif arg == NonTerminal.Atom:
             name = 'Atom'
         return name
+
+    def panic_mode(self, token_pack):
+        if token_pack[1][0] == TokenType.EOF:
+            self.syntaxError.append((4, token_pack))  # errorType , (lineno, token)
+        else:
+            self.syntaxError.append((1, token_pack))
 
 
 class ParseTable:
@@ -304,19 +326,19 @@ class ParseTable:
         (NonTerminal.Factor, TokenType.ID): (NonTerminal.Atom, NonTerminal.Power),
         (NonTerminal.Factor, TokenType.NUMBER): (NonTerminal.Atom, NonTerminal.Power),
 
-        (NonTerminal.Factor, ';'): (NonTerminal.Primary,),
-        (NonTerminal.Factor, '['): (NonTerminal.Primary,),
-        (NonTerminal.Factor, ']'): (NonTerminal.Primary,),
-        (NonTerminal.Factor, '('): (NonTerminal.Primary,),
-        (NonTerminal.Factor, ')'): (NonTerminal.Primary,),
-        (NonTerminal.Factor, ','): (NonTerminal.Primary,),
-        (NonTerminal.Factor, ':'): (NonTerminal.Primary,),
-        (NonTerminal.Factor, '=='): (NonTerminal.Primary,),
-        (NonTerminal.Factor, '<'): (NonTerminal.Primary,),
-        (NonTerminal.Factor, '+'): (NonTerminal.Primary,),
-        (NonTerminal.Factor, '-'): (NonTerminal.Primary,),
-        (NonTerminal.Factor, '*'): (NonTerminal.Primary,),
-        (NonTerminal.Factor, '**'): ('**', NonTerminal.Factor),
+        (NonTerminal.Power, ';'): (NonTerminal.Primary,),
+        (NonTerminal.Power, '['): (NonTerminal.Primary,),
+        (NonTerminal.Power, ']'): (NonTerminal.Primary,),
+        (NonTerminal.Power, '('): (NonTerminal.Primary,),
+        (NonTerminal.Power, ')'): (NonTerminal.Primary,),
+        (NonTerminal.Power, ','): (NonTerminal.Primary,),
+        (NonTerminal.Power, ':'): (NonTerminal.Primary,),
+        (NonTerminal.Power, '=='): (NonTerminal.Primary,),
+        (NonTerminal.Power, '<'): (NonTerminal.Primary,),
+        (NonTerminal.Power, '+'): (NonTerminal.Primary,),
+        (NonTerminal.Power, '-'): (NonTerminal.Primary,),
+        (NonTerminal.Power, '*'): (NonTerminal.Primary,),
+        (NonTerminal.Power, '**'): ('**', NonTerminal.Factor),
 
         (NonTerminal.Primary, ';'): (),
         (NonTerminal.Primary, '['): ('[', NonTerminal.Expression, ']', NonTerminal.Primary),

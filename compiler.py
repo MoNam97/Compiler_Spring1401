@@ -47,14 +47,11 @@ def write_lexical_errors(lexical_errors):
 if __name__ == '__main__':
     recognized_tokens = []
     symbols = copy(KEYWORDS)
-    scanner = Scanner("input.txt", symbols)
-    lookahead = False
+    scanner = Scanner("PA2-Testcases/T01/input.txt", symbols)
 
-    parser = Parser("input.txt", symbols)
+    parser = Parser(scanner)
     parser.parse()
-
-    for pre, fill, node in RenderTree(parser.parseTree):
-        print("%s%s" % (pre, node.name))
+    parser.print_tree()
 
     write_symbol_table(symbols)
     write_tokens(recognized_tokens)
