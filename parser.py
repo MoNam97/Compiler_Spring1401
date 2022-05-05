@@ -43,7 +43,7 @@ class Parser:
                 self.derivate_non_terminal(self.current_token)
             else:
                 if not self.sameTerminal(self.current_token[1]):
-                    self.syntaxError.append((3, self.parseStack[-1]))
+                    self.syntaxError.append((3, self.current_token, self.parseStack[-1]))
                     self.parseStack.pop()
                     self.parseTreeStack.pop()
                 else:
@@ -89,6 +89,8 @@ class Parser:
     def panic_mode(self, token_pack):
         if token_pack[1][0] == TokenType.EOF:
             self.syntaxError.append((4, token_pack))  # errorType , (lineno, token)
+            self.parseStack.clear()
+            self.parseStack.append(TokenType.EOF)
         else:
             self.syntaxError.append((1, token_pack))
             self.go_next_token()
@@ -98,7 +100,7 @@ class Parser:
         if next_branch is None:
             self.panic_mode(token_pack)
         elif next_branch == -1:
-            self.syntaxError.append((2, token_pack))
+            self.syntaxError.append((2, token_pack, self.parseStack[-1]))
             self.parseStack.pop()
             self.parseTreeStack.pop()
         else:

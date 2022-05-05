@@ -7,7 +7,7 @@ from anytree import RenderTree
 
 from parser import Parser
 from scanner import Scanner
-from utils import KEYWORDS
+from utils import KEYWORDS, TokenType
 
 
 def write_tokens(recognized_tokens):
@@ -48,6 +48,23 @@ def write_syntax_errors(errors):
     with open("syntax_errors.txt", "w+") as f:
         if len(errors) == 0:
             f.write("There is no syntax error.")
+        for error in errors:
+            f.write(f"#{error[1][0] + 1} : ")
+            if error[0] == 3:
+                f.write(f"syntax error, missing {error[-1]}\n")
+            elif error[0] == 1:
+                if error[1][1][0] in [TokenType.SYMBOL, TokenType.KEYWORD]:
+                    arg = error[1][1][1]
+                else:
+                    arg = error[1][1][0].name
+                f.write(f"syntax error, illegal {arg}\n")
+            elif error[0] == 2:
+                f.write(f"syntax error, missing {error[-1].name}\n")
+                # TODO: on line chi shod?
+            elif error[0] == 4:
+                f.write(f"syntax error, Unexpected EOF")
+            else:
+                assert False
 
 
 def write_parse_tree(tree):
@@ -59,7 +76,7 @@ def write_parse_tree(tree):
 if __name__ == '__main__':
     recognized_tokens = []
     symbols = copy(KEYWORDS)
-    scanner = Scanner("PA2-Testcases/T07/input.txt", symbols)
+    scanner = Scanner("PA2-Testcases/T09/input.txt", symbols)
 
     parser = Parser(scanner)
     parser.parse()
