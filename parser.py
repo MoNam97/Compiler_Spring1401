@@ -2,7 +2,7 @@ from collections import deque
 
 from anytree import Node, RenderTree
 
-from utils import TokenType, NonTerminal, KEYWORDS
+from utils import TokenType, NonTerminal, KEYWORDS, EPSILON
 
 
 # TODO:
@@ -10,7 +10,7 @@ from utils import TokenType, NonTerminal, KEYWORDS
 # [x] if next_branch -> -1
 # [x] if next_branch -> something
 # [x] implementation make_node method
-# [ ] Handle epsilon
+# [x] Handle epsilon
 # [ ] Handle traling $
 # [ ] Fix extra single qoutes in parse tree
 
@@ -36,24 +36,7 @@ class Parser:
         while True:
             self.print_tree()
             if isinstance(self.parseStack[-1], NonTerminal):
-                next_branch = self.next_move(token_pack[1])
-                if next_branch is None:
-                    self.panic_mode(token_pack)
-                    continue
-                elif next_branch == -1:
-                    self.syntaxError.append((2, token_pack))
-                    self.parseStack.pop()
-                    self.parseTreeStack.pop()
-                else:
-                    parent = self.parseTreeStack[-1]
-                    self.parseTreeStack.pop()
-                    self.parseStack.pop()
-                    nodes = []
-                    for arg in next_branch:
-                        nodes.append(self.make_node(arg, token_pack[1], parent))
-                    for arg, node in zip(next_branch[::-1], nodes[::-1]):
-                        self.parseStack.append(arg)
-                        self.parseTreeStack.append(node)
+                self.derivate_non_terminal(token_pack)
             else:
                 if not self.sameTerminal(token_pack[1]):
                     self.syntaxError.append((3, token_pack))
@@ -165,6 +148,27 @@ class Parser:
             self.syntaxError.append((4, token_pack))  # errorType , (lineno, token)
         else:
             self.syntaxError.append((1, token_pack))
+
+    def derivate_non_terminal(self, token_pack):
+        next_branch = self.next_move(token_pack[1])
+        if next_branch is None:
+            self.panic_mode(token_pack)
+        elif next_branch == -1:
+            self.syntaxError.append((2, token_pack))
+            self.parseStack.pop()
+            self.parseTreeStack.pop()
+        else:
+            parent = self.parseTreeStack[-1]
+            self.parseTreeStack.pop()
+            self.parseStack.pop()
+            if next_branch == ():
+                Node(EPSILON, parent=parent)
+            nodes = []
+            for arg in next_branch:
+                nodes.append(self.make_node(arg, token_pack[1], parent))
+            for arg, node in zip(next_branch[::-1], nodes[::-1]):
+                self.parseStack.append(arg)
+                self.parseTreeStack.append(node)
 
 
 class ParseTable:

@@ -2,7 +2,7 @@ from enum import Enum
 from string import ascii_letters, digits, whitespace, printable
 
 KEYWORDS = ['break', 'continue', 'def', 'else', 'if', 'return', 'while']
-
+EPSILON = 'epsilon'
 
 class TokenType(Enum):
     NUMBER = 0
