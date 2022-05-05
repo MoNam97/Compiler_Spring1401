@@ -13,6 +13,7 @@ from utils import TokenType, NonTerminal, KEYWORDS, EPSILON
 # [x] Handle epsilon
 # [x] Handle traling $
 # [ ] Fix extra single qoutes in parse tree
+# [ ] Consider non empty stack when EOF received
 
 class Parser:
     scanner = None
@@ -47,7 +48,7 @@ class Parser:
                     self.parseTreeStack.pop()
                     token_pack, lookahead = self.scanner.get_next_token(lookahead)
 
-            if token_pack[1][0] == TokenType.EOF:
+            if token_pack[1][0] == TokenType.EOF and len(self.parseStack) == 1:
                 Node('$', parent=self.parseTree)
                 break
 
