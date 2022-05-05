@@ -12,7 +12,7 @@ from utils import TokenType, NonTerminal, KEYWORDS, EPSILON
 # [x] implementation make_node method
 # [x] Handle epsilon
 # [x] Handle traling $
-# [ ] Fix extra single qoutes in parse tree
+# [x] Fix extra single qoutes in parse tree
 # [ ] Consider non empty stack when EOF received
 
 class Parser:
@@ -67,11 +67,11 @@ class Parser:
         if isinstance(arg, NonTerminal):
             node = Node(arg.name, parent=parent)
         elif isinstance(arg, TokenType):
-            node = Node((token[0].name, token[1]), parent=parent)
+            node = Node('(%s, %s)' % (token[0].name, token[1]), parent=parent)
         elif arg in KEYWORDS:
-            node = Node((TokenType.KEYWORD.name, arg), parent=parent)
+            node = Node('(%s, %s)' % (TokenType.KEYWORD.name, arg), parent=parent)
         else:
-            node = Node((TokenType.SYMBOL.name, arg), parent=parent)
+            node = Node('(%s, %s)' % (TokenType.SYMBOL.name, arg), parent=parent)
         return node
 
     def sameTerminal(self, token_pack):
@@ -166,7 +166,7 @@ class ParseTable:
 
         (NonTerminal.C, ';'): -1,
         (NonTerminal.C, TokenType.ID): (NonTerminal.Expression,),
-        (NonTerminal.C, TokenType.NUMBER): (NonTerminal.Expression,),
+        (NonTerminal.C, TokenType.NUM): (NonTerminal.Expression,),
         (NonTerminal.C, '['): ('[', NonTerminal.Expression, NonTerminal.List_Rest, ']'),
 
         (NonTerminal.List_Rest, ']'): (),
@@ -176,7 +176,7 @@ class ParseTable:
         (NonTerminal.Return_stmt, 'return'): ('return', NonTerminal.Return_Value),
         (NonTerminal.Return_Value, ';'): (),
         (NonTerminal.Return_Value, TokenType.ID): (NonTerminal.Expression,),
-        (NonTerminal.Return_Value, TokenType.NUMBER): (NonTerminal.Expression,),
+        (NonTerminal.Return_Value, TokenType.NUM): (NonTerminal.Expression,),
 
         (NonTerminal.Global_stmt, ';'): -1,
         (NonTerminal.Global_stmt, 'global'): ('global', TokenType.ID),
@@ -204,11 +204,11 @@ class ParseTable:
         (NonTerminal.Relational_Expression, ':'): -1,
         (NonTerminal.Relational_Expression, TokenType.ID): (
             NonTerminal.Expression, NonTerminal.Relop, NonTerminal.Expression),
-        (NonTerminal.Relational_Expression, TokenType.NUMBER): (
+        (NonTerminal.Relational_Expression, TokenType.NUM): (
             NonTerminal.Expression, NonTerminal.Relop, NonTerminal.Expression),
 
         (NonTerminal.Relop, TokenType.ID): -1,
-        (NonTerminal.Relop, TokenType.NUMBER): -1,
+        (NonTerminal.Relop, TokenType.NUM): -1,
         (NonTerminal.Relop, '=='): ('==',),
         (NonTerminal.Relop, '<'): ('<',),
 
@@ -220,7 +220,7 @@ class ParseTable:
         (NonTerminal.Expression, '=='): -1,
         (NonTerminal.Expression, '<'): -1,
         (NonTerminal.Expression, TokenType.ID): (NonTerminal.Term, NonTerminal.Expression_Prime),
-        (NonTerminal.Expression, TokenType.NUMBER): (NonTerminal.Term, NonTerminal.Expression_Prime),
+        (NonTerminal.Expression, TokenType.NUM): (NonTerminal.Term, NonTerminal.Expression_Prime),
 
         (NonTerminal.Expression_Prime, ';'): (),
         (NonTerminal.Expression_Prime, ']'): (),
@@ -230,7 +230,7 @@ class ParseTable:
         (NonTerminal.Expression_Prime, '=='): (),
         (NonTerminal.Expression_Prime, '<'): (),
         (NonTerminal.Expression_Prime, '+'): ('+', NonTerminal.Term, NonTerminal.Expression_Prime),
-        (NonTerminal.Expression_Prime, '-'): ('+', NonTerminal.Term, NonTerminal.Expression_Prime),
+        (NonTerminal.Expression_Prime, '-'): ('-', NonTerminal.Term, NonTerminal.Expression_Prime),
 
         (NonTerminal.Term, ';'): -1,
         (NonTerminal.Term, ']'): -1,
@@ -242,7 +242,7 @@ class ParseTable:
         (NonTerminal.Term, '+'): -1,
         (NonTerminal.Term, '-'): -1,
         (NonTerminal.Term, TokenType.ID): (NonTerminal.Factor, NonTerminal.Term_Prime),
-        (NonTerminal.Term, TokenType.NUMBER): (NonTerminal.Factor, NonTerminal.Term_Prime),
+        (NonTerminal.Term, TokenType.NUM): (NonTerminal.Factor, NonTerminal.Term_Prime),
 
         (NonTerminal.Term_Prime, ';'): (),
         (NonTerminal.Term_Prime, ']'): (),
@@ -266,7 +266,7 @@ class ParseTable:
         (NonTerminal.Factor, '-'): -1,
         (NonTerminal.Factor, '*'): -1,
         (NonTerminal.Factor, TokenType.ID): (NonTerminal.Atom, NonTerminal.Power),
-        (NonTerminal.Factor, TokenType.NUMBER): (NonTerminal.Atom, NonTerminal.Power),
+        (NonTerminal.Factor, TokenType.NUM): (NonTerminal.Atom, NonTerminal.Power),
 
         (NonTerminal.Power, ';'): (NonTerminal.Primary,),
         (NonTerminal.Power, '['): (NonTerminal.Primary,),
@@ -297,7 +297,7 @@ class ParseTable:
 
         (NonTerminal.Arguments, ')'): (),
         (NonTerminal.Arguments, TokenType.ID): (NonTerminal.Expression, NonTerminal.Arguments_Prime),
-        (NonTerminal.Arguments, TokenType.NUMBER): (NonTerminal.Expression, NonTerminal.Arguments_Prime),
+        (NonTerminal.Arguments, TokenType.NUM): (NonTerminal.Expression, NonTerminal.Arguments_Prime),
 
         (NonTerminal.Arguments_Prime, ')'): (),
         (NonTerminal.Arguments_Prime, ','): (',', NonTerminal.Expression, NonTerminal.Arguments_Prime),
@@ -316,5 +316,5 @@ class ParseTable:
         (NonTerminal.Atom, '*'): -1,
         (NonTerminal.Atom, '**'): -1,
         (NonTerminal.Atom, TokenType.ID): (TokenType.ID,),
-        (NonTerminal.Atom, TokenType.NUMBER): (TokenType.NUMBER,)
+        (NonTerminal.Atom, TokenType.NUM): (TokenType.NUM,)
     }

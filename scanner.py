@@ -34,7 +34,7 @@ class State(Enum):
 
     DIGIT_INT = StateItem(next(counter), False, False)
     DIGIT_FLOAT = StateItem(next(counter), False, False)
-    DIGIT_FINAL = StateItem(next(counter), TokenType.NUMBER, True)
+    DIGIT_FINAL = StateItem(next(counter), TokenType.NUM, True)
 
     KEYWORD = StateItem(next(counter), False, False)
     KEYWORD_FINAL = StateItem(next(counter), TokenType.KEYWORD, True)

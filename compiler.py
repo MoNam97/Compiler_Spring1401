@@ -3,8 +3,6 @@
 
 from copy import copy
 
-from anytree import RenderTree
-
 from parser import Parser
 from scanner import Scanner
 from utils import KEYWORDS
@@ -44,6 +42,12 @@ def write_lexical_errors(lexical_errors):
             f.write(f" {error}")
 
 
+def write_syntax_errors(errors):
+    with open("syntax_errors.txt", "w+") as f:
+        if len(errors) == 0:
+            f.write("There is no syntax error.")
+
+
 if __name__ == '__main__':
     recognized_tokens = []
     symbols = copy(KEYWORDS)
@@ -53,6 +57,7 @@ if __name__ == '__main__':
     parser.parse()
     parser.print_tree()
     print(parser.syntaxError)
+    write_syntax_errors(parser.syntaxError)
     write_symbol_table(symbols)
     write_tokens(recognized_tokens)
     write_lexical_errors(scanner.lexical_errors)

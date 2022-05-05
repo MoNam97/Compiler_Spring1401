@@ -4,8 +4,9 @@ from string import ascii_letters, digits, whitespace, printable
 KEYWORDS = ['break', 'continue', 'def', 'else', 'if', 'return', 'while']
 EPSILON = 'epsilon'
 
+
 class TokenType(Enum):
-    NUMBER = 0
+    NUM = 0
     ID = 1
     KEYWORD = 2
     SYMBOL = 3
