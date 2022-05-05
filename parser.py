@@ -14,8 +14,8 @@ from utils import TokenType, NonTerminal, KEYWORDS, EPSILON
 # [x] Handle epsilon
 # [x] Handle traling $
 # [x] Fix extra single qoutes in parse tree
-# [ ] Consider non empty stack when EOF received
-# [ ] Write to files
+# [x] Consider non empty stack when EOF received
+# [x] Write to files
 
 class Parser:
     scanner = None
@@ -38,7 +38,7 @@ class Parser:
     def parse(self):
         self.go_next_token()
         while True:
-            self.print_tree()
+            # self.print_tree()
             if isinstance(self.parseStack[-1], NonTerminal):
                 self.derivate_non_terminal(self.current_token)
             else:
@@ -54,7 +54,8 @@ class Parser:
                         node.name = '(%s, %s)' % (TokenType.ID.name, self.current_token[1][1])
                     self.go_next_token()
             if self.current_token[1][0] == TokenType.EOF and len(self.parseStack) == 1:
-                Node('$', parent=self.parseTree)
+                if not self.syntaxError or self.syntaxError[-1][0] != 4:
+                    Node('$', parent=self.parseTree)
                 break
 
     def next_move(self, token_pack):
@@ -91,6 +92,8 @@ class Parser:
         if token_pack[1][0] == TokenType.EOF:
             self.syntaxError.append((4, token_pack))  # errorType , (lineno, token)
             self.parseStack.clear()
+            for node in self.parseTreeStack:
+                node.parent = Node("seektir")
             self.parseStack.append(TokenType.EOF)
         else:
             self.syntaxError.append((1, token_pack))
@@ -103,7 +106,8 @@ class Parser:
         elif next_branch == -1:
             self.syntaxError.append((2, token_pack, self.parseStack[-1]))
             self.parseStack.pop()
-            self.parseTreeStack.pop()
+            node = self.parseTreeStack.pop()
+            node.parent = Node("seektir")
         else:
             parent = self.parseTreeStack[-1]
             self.parseTreeStack.pop()
