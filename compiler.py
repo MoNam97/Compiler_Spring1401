@@ -2,10 +2,12 @@
 # Mohamad Namdar  - 97106302
 
 from copy import copy
-# Mohamadfrom parser import Parser
+
 from anytree import RenderTree
+
+from parser import Parser
 from scanner import Scanner
-from utils import KEYWORDS, TokenType
+from utils import KEYWORDS
 
 
 def write_tokens(recognized_tokens):
@@ -41,18 +43,19 @@ def write_lexical_errors(lexical_errors):
                 last_line = lineno
             f.write(f" {error}")
 
+
 if __name__ == '__main__':
     recognized_tokens = []
     symbols = copy(KEYWORDS)
     scanner = Scanner("input.txt", symbols)
     lookahead = False
-    
+
     parser = Parser("input.txt", symbols)
     parser.parse()
-    
+
     for pre, fill, node in RenderTree(parser.parseTree):
         print("%s%s" % (pre, node.name))
-    
+
     write_symbol_table(symbols)
     write_tokens(recognized_tokens)
     write_lexical_errors(scanner.lexical_errors)

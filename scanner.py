@@ -24,31 +24,31 @@ counter = iter(range(1000000))
 
 class State(Enum):
     INITIAL = StateItem(next(counter), False, False)
-    SYMBOL_FINAL =  StateItem(next(counter), TokenType.SYMBOL, False)
-    EQUAL_SYMBOL =  StateItem(next(counter), False, False)
+    SYMBOL_FINAL = StateItem(next(counter), TokenType.SYMBOL, False)
+    EQUAL_SYMBOL = StateItem(next(counter), False, False)
     EQUAL_SYMBOL2 = StateItem(next(counter), TokenType.SYMBOL, False)
     EQUAL_SYMBOL3 = StateItem(next(counter), TokenType.SYMBOL, True)
-    STAR =  StateItem(next(counter), False, False)
+    STAR = StateItem(next(counter), False, False)
     STAR2 = StateItem(next(counter), TokenType.SYMBOL, False)
     STAR3 = StateItem(next(counter), TokenType.SYMBOL, True)
 
-    DIGIT_INT =   StateItem(next(counter), False, False)
+    DIGIT_INT = StateItem(next(counter), False, False)
     DIGIT_FLOAT = StateItem(next(counter), False, False)
     DIGIT_FINAL = StateItem(next(counter), TokenType.NUMBER, True)
 
-    KEYWORD =       StateItem(next(counter), False, False)
+    KEYWORD = StateItem(next(counter), False, False)
     KEYWORD_FINAL = StateItem(next(counter), TokenType.KEYWORD, True)
 
-    WHITESPACE =       StateItem(next(counter), False, False)
+    WHITESPACE = StateItem(next(counter), False, False)
     WHITESPACE_FINAL = StateItem(next(counter), TokenType.WHITESPACE, True)
 
-    COMMENT_ONELINE =    StateItem(next(counter), False, False)
+    COMMENT_ONELINE = StateItem(next(counter), False, False)
     COMMENT_MULTILINE1 = StateItem(next(counter), False, True)
     COMMENT_MULTILINE2 = StateItem(next(counter), False, True)
     COMMENT_MULTILINE3 = StateItem(next(counter), False, False)
-    COMMENT_FINAL =      StateItem(next(counter), TokenType.COMMENT, True)
+    COMMENT_FINAL = StateItem(next(counter), TokenType.COMMENT, True)
     COMMENT_MULTILINE_FINAL = StateItem(next(counter), TokenType.COMMENT, False)
-    
+
     END_OF_FILE = StateItem(next(counter), TokenType.EOF, False)
 
 
@@ -106,9 +106,9 @@ class DFA:
 
 class Scanner:
     current = None
-    buffer  = None
+    buffer = None
     symbols = None
-    f       = None
+    f = None
     last_lineno = 0
     lineno = 0
     last_char = None
@@ -161,7 +161,7 @@ class Scanner:
         if prev_state.value.lookahead:
             text = text[:-1]
         return Handler(text=text), prev_state.value.lookahead
-    
+
     def get_next_token(self, lookahead: bool):
         while True:
             if not lookahead:
@@ -181,7 +181,8 @@ class Scanner:
                 self.last_lineno = self.lineno
                 if recognized_token[0] not in [TokenType.WHITESPACE, TokenType.COMMENT]:
                     return current_token, lookahead
-                else: continue
+                else:
+                    continue
             if next_char == '\n':
                 self.lineno += 1
             if next_char == Char.EOF:
