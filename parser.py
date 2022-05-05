@@ -5,6 +5,77 @@ from scanner import Scanner
 from utils import TokenType, NonTerminal
 from anytree import Node, RenderTree
 
+# TODO:
+# [x] if next_branch -> None
+# [x] if next_branch -> -1
+# [x] if next_branch -> something
+# [ ] implementation make_node method
+
+class Parser:
+    scanner = None
+    current_token = None
+    parseStack = deque()
+    parseTree = Node("Program")
+    syntaxError = []
+    
+    def __init__(self, filepath, symbol):
+        self.scanner = Scanner(filepath, symbol)
+        self.parseStack.extend([TokenType.EOF, NonTerminal.Program])
+    
+    def parse(self):
+        lookahead = False
+        while True:
+            token_pack, lookahead   = self.scanner.get_next_token(lookahead)
+            
+            if isinstance(self.parseStack[-1], NonTerminal):
+                next_branch = self.next_move(token_pack[1])
+                if next_branch is None:
+                    if token_pack[1][0] == TokenType.EOF:
+                        self.syntaxError.append((4, token_pack))
+                    else:
+                        self.syntaxError.append((1, token_pack)) # errorType , (lineno, token)
+                        continue
+                elif next_branch == -1:
+                    self.syntaxError.append((2, token_pack))
+                    self.parseStack.pop()
+                else:
+                    for arg in next_branch:
+                        self.make_node(arg)
+                    for arg in next_branch[::-1]:
+                        self.parseStack.append(arg)
+            else:
+                if not self.sameTerminal(token_pack[1]):
+                    self.syntaxError.append((3, token_pack))
+                self.parseStack.pop()
+                    
+                
+            if token_pack[1][0] == TokenType.EOF:
+                break
+            
+    def next_move(self, token_pack):
+        token = token_pack[0]
+        lexim = token_pack[1]
+        if token in (TokenType.KEYWORD, TokenType.SYMBOL):
+            if (self.parseStack[-1], lexim) in ParseTable.next:
+                return ParseTable.next[(self.parseStack[-1], lexim)]
+        else:
+            if (self.parseStack[-1], token) in ParseTable.next:
+                return ParseTable.next[(self.parseStack[-1], token)]
+        return None
+    
+    def make_node(self, arg):
+        pass
+    
+    def sameTerminal(self, token_pack):
+        token = token_pack[0]
+        lexim = token_pack[1]
+        if token in (TokenType.KEYWORD, TokenType.SYMBOL):
+            return self.parseStack[-1] == lexim
+        else:
+            return self.parseStack[-1] == token
+    
+    
+    
 
 class ParseTable:
     next = {
@@ -210,38 +281,3 @@ class ParseTable:
         (NonTerminal.Atom, TokenType.NUMBER):   (TokenType.NUMBER)
     }
 
-
-class Parser:
-    scanner = None
-    current_token = None
-    parsestack = deque()
-    parseTree = None
-    
-    def __init__(self, filepath, symbol):
-        self.scanner = Scanner(filepath, symbol)
-        self.parsestack.extend([TokenType.EOF, NonTerminal.Program])
-    
-    def parse(self):
-        lookahead = False
-        while True:
-            token_pack, lookahead   = self.scanner.get_next_token(lookahead)
-            
-            next_branch = self.next_move(token_pack[1])
-            
-            # if next_branch -> None
-            # if next_branch -> -1
-            # if next_branch -> something
-            
-            if token_pack[1][0] == TokenType.EOF:
-                break
-            
-    def next_move(self, token_pack):
-        token = token_pack[0]
-        lexim = token_pack[1]
-        if token in (TokenType.KEYWORD, TokenType.SYMBOL):
-            if (self.parsestack[-1], lexim) in ParseTable.next:
-                return ParseTable.next[(self.parsestack[-1], lexim)]
-        else:
-            if (self.parsestack[-1], token) in ParseTable.next:
-                return ParseTable.next[(self.parsestack[-1], token)]
-        return None

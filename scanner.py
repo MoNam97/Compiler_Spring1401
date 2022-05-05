@@ -163,28 +163,28 @@ class Scanner:
         return Handler(text=text), prev_state.value.lookahead
     
     def get_next_token(self, lookahead: bool):
-            while True:
-                if not lookahead:
-                    next_char = self.f.read(1) or Char.EOF
-                    self.last_char = next_char
-                else:
-                    next_char = self.last_char
-                recognized_token, lookahead = self.eval_next_char(next_char)
-                if isinstance(recognized_token, BaseLexicalError):
-                    self.lexical_errors.append((self.last_lineno, recognized_token))
-                    self.last_lineno = self.lineno
-                    continue
-                elif recognized_token:
-                    current_token = (self.last_lineno, recognized_token)
-                    if recognized_token[0] == TokenType.ID and recognized_token[1] not in self.symbols:
-                        self.symbols.append(recognized_token[1])
-                    self.last_lineno = self.lineno
-                    if recognized_token[0] not in [TokenType.WHITESPACE, TokenType.COMMENT]:
-                        return current_token, lookahead
-                    else: continue
-                if next_char == '\n':
-                    self.lineno += 1
-                if next_char == Char.EOF:
-                    self.f.close()
-                    return (self.last_lineno, (TokenType.EOF, '$')), False
+        while True:
+            if not lookahead:
+                next_char = self.f.read(1) or Char.EOF
+                self.last_char = next_char
+            else:
+                next_char = self.last_char
+            recognized_token, lookahead = self.eval_next_char(next_char)
+            if isinstance(recognized_token, BaseLexicalError):
+                self.lexical_errors.append((self.last_lineno, recognized_token))
+                self.last_lineno = self.lineno
+                continue
+            elif recognized_token:
+                current_token = (self.last_lineno, recognized_token)
+                if recognized_token[0] == TokenType.ID and recognized_token[1] not in self.symbols:
+                    self.symbols.append(recognized_token[1])
+                self.last_lineno = self.lineno
+                if recognized_token[0] not in [TokenType.WHITESPACE, TokenType.COMMENT]:
+                    return current_token, lookahead
+                else: continue
+            if next_char == '\n':
+                self.lineno += 1
+            if next_char == Char.EOF:
+                self.f.close()
+                return (self.last_lineno, (TokenType.EOF, '$')), False
 # Better to handle EOF in DFA
