@@ -59,7 +59,7 @@ def write_parse_tree(tree):
 if __name__ == '__main__':
     recognized_tokens = []
     symbols = copy(KEYWORDS)
-    scanner = Scanner("PA2-Testcases/T01/input.txt", symbols)
+    scanner = Scanner("PA2-Testcases/T07/input.txt", symbols)
 
     parser = Parser(scanner)
     parser.parse()

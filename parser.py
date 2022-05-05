@@ -2,6 +2,7 @@ from collections import deque
 
 from anytree import Node, RenderTree
 
+from scanner import Scanner
 from utils import TokenType, NonTerminal, KEYWORDS, EPSILON
 
 
@@ -15,6 +16,7 @@ from utils import TokenType, NonTerminal, KEYWORDS, EPSILON
 # [x] Fix extra single qoutes in parse tree
 # [ ] Consider non empty stack when EOF received
 # [ ] Write to files
+
 class Parser:
     scanner = None
     # current_token = None
@@ -22,8 +24,9 @@ class Parser:
     parseTree = Node("Program")
     parseTreeStack = [parseTree]
     syntaxError = []
+    lookahead = False
 
-    def __init__(self, scanner):
+    def __init__(self, scanner: Scanner):
         self.scanner = scanner
         self.parseStack.extend([TokenType.EOF, NonTerminal.Program])
 
@@ -32,22 +35,22 @@ class Parser:
             print("%s%s" % (pre, node.name))
 
     def parse(self):
-        lookahead = False
-        token_pack, lookahead = self.scanner.get_next_token(lookahead)
+        token_pack = self.get_next_token()
         while True:
             self.print_tree()
             if isinstance(self.parseStack[-1], NonTerminal):
                 self.derivate_non_terminal(token_pack)
             else:
                 if not self.sameTerminal(token_pack[1]):
-                    self.syntaxError.append((3, token_pack))
+                    self.syntaxError.append((3, self.parseStack[-1]))
                     self.parseStack.pop()
                     self.parseTreeStack.pop()
                 else:
-                    self.parseStack.pop()
-                    self.parseTreeStack.pop()
-                    token_pack, lookahead = self.scanner.get_next_token(lookahead)
-
+                    terminal = self.parseStack.pop()
+                    node: Node = self.parseTreeStack.pop()
+                    if terminal == TokenType.ID:
+                        node.name = '(%s, %s)' % (TokenType.ID.name, token_pack[1][1])
+                    token_pack = self.get_next_token()
             if token_pack[1][0] == TokenType.EOF and len(self.parseStack) == 1:
                 Node('$', parent=self.parseTree)
                 break
@@ -67,7 +70,7 @@ class Parser:
         if isinstance(arg, NonTerminal):
             node = Node(arg.name, parent=parent)
         elif isinstance(arg, TokenType):
-            node = Node('(%s, %s)' % (token[0].name, token[1]), parent=parent)
+            node = Node('(%s, %s)' % (arg.name, token[1]), parent=parent)
         elif arg in KEYWORDS:
             node = Node('(%s, %s)' % (TokenType.KEYWORD.name, arg), parent=parent)
         else:
@@ -87,6 +90,7 @@ class Parser:
             self.syntaxError.append((4, token_pack))  # errorType , (lineno, token)
         else:
             self.syntaxError.append((1, token_pack))
+
 
     def derivate_non_terminal(self, token_pack):
         next_branch = self.next_move(token_pack[1])
@@ -108,6 +112,10 @@ class Parser:
             for arg, node in zip(next_branch[::-1], nodes[::-1]):
                 self.parseStack.append(arg)
                 self.parseTreeStack.append(node)
+
+    def get_next_token(self):
+        result, self.lookahead = self.scanner.get_next_token(self.lookahead)
+        return result
 
 
 class ParseTable:
