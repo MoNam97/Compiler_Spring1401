@@ -11,7 +11,7 @@ from utils import TokenType, NonTerminal, KEYWORDS, EPSILON
 # [x] if next_branch -> something
 # [x] implementation make_node method
 # [x] Handle epsilon
-# [ ] Handle traling $
+# [x] Handle traling $
 # [ ] Fix extra single qoutes in parse tree
 
 class Parser:
@@ -48,6 +48,7 @@ class Parser:
                     token_pack, lookahead = self.scanner.get_next_token(lookahead)
 
             if token_pack[1][0] == TokenType.EOF:
+                Node('$', parent=self.parseTree)
                 break
 
     def next_move(self, token_pack):
@@ -79,69 +80,6 @@ class Parser:
             return self.parseStack[-1] == lexim
         else:
             return self.parseStack[-1] == token
-
-    def nameof(self, arg):
-        if arg == NonTerminal.Program:
-            name = 'Program'
-        elif arg == NonTerminal.Statements:
-            name = 'Statements'
-        elif arg == NonTerminal.Statement:
-            name = 'Statement'
-        elif arg == NonTerminal.Simple_stmt:
-            name = 'Simple_stmt'
-        elif arg == NonTerminal.Compound_stmt:
-            name = 'Compound_stmt'
-        elif arg == NonTerminal.Assignment_Call:
-            name = 'Assignment_Call'
-        elif arg == NonTerminal.B:
-            name = 'B'
-        elif arg == NonTerminal.C:
-            name = 'C'
-        elif arg == NonTerminal.List_Rest:
-            name = 'List_Rest'
-        elif arg == NonTerminal.Return_stmt:
-            name = 'Return_stmt'
-        elif arg == NonTerminal.Return_Value:
-            name = 'Return_Value'
-        elif arg == NonTerminal.Global_stmt:
-            name = 'Global_stmt'
-        elif arg == NonTerminal.Function_def:
-            name = 'Function_def'
-        elif arg == NonTerminal.Params:
-            name = 'Params'
-        elif arg == NonTerminal.Params_Prime:
-            name = 'Params_Prime'
-        elif arg == NonTerminal.If_stmt:
-            name = 'If_stmt'
-        elif arg == NonTerminal.Else_block:
-            name = 'Else_block'
-        elif arg == NonTerminal.Iteration_stmt:
-            name = 'Iteration_stmt'
-        elif arg == NonTerminal.Relational_Expression:
-            name = 'Relational_Expression'
-        elif arg == NonTerminal.Relop:
-            name = 'Relop'
-        elif arg == NonTerminal.Expression:
-            name = 'Expression'
-        elif arg == NonTerminal.Expression_Prime:
-            name = 'Expression_Prime'
-        elif arg == NonTerminal.Term:
-            name = 'Term'
-        elif arg == NonTerminal.Term_Prime:
-            name = 'Term_Prime'
-        elif arg == NonTerminal.Factor:
-            name = 'Factor'
-        elif arg == NonTerminal.Power:
-            name = 'Power'
-        elif arg == NonTerminal.Primary:
-            name = 'Primary'
-        elif arg == NonTerminal.Arguments:
-            name = 'Arguments'
-        elif arg == NonTerminal.Arguments_Prime:
-            name = 'Arguments_Prime'
-        elif arg == NonTerminal.Atom:
-            name = 'Atom'
-        return name
 
     def panic_mode(self, token_pack):
         if token_pack[1][0] == TokenType.EOF:

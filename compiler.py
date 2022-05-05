@@ -52,7 +52,7 @@ if __name__ == '__main__':
     parser = Parser(scanner)
     parser.parse()
     parser.print_tree()
-
+    print(parser.syntaxError)
     write_symbol_table(symbols)
     write_tokens(recognized_tokens)
     write_lexical_errors(scanner.lexical_errors)
