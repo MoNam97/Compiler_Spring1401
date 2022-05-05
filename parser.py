@@ -1,9 +1,8 @@
 from collections import deque
-from time import sleep
 
 from anytree import Node, RenderTree
 
-from utils import TokenType, NonTerminal, Char
+from utils import TokenType, NonTerminal, KEYWORDS
 
 
 # TODO:
@@ -11,6 +10,9 @@ from utils import TokenType, NonTerminal, Char
 # [x] if next_branch -> -1
 # [x] if next_branch -> something
 # [x] implementation make_node method
+# [ ] Handle epsilon
+# [ ] Handle traling $
+# [ ] Fix extra single qoutes in parse tree
 
 class Parser:
     scanner = None
@@ -32,10 +34,9 @@ class Parser:
         lookahead = False
         token_pack, lookahead = self.scanner.get_next_token(lookahead)
         while True:
+            self.print_tree()
             if isinstance(self.parseStack[-1], NonTerminal):
                 next_branch = self.next_move(token_pack[1])
-                self.print_tree()
-                sleep(0.1)
                 if next_branch is None:
                     self.panic_mode(token_pack)
                     continue
@@ -49,13 +50,10 @@ class Parser:
                     self.parseStack.pop()
                     nodes = []
                     for arg in next_branch:
-                        node = self.make_node(arg, token_pack[1], parent)
-                        assert node is not None
-                        nodes.append(node)
+                        nodes.append(self.make_node(arg, token_pack[1], parent))
                     for arg, node in zip(next_branch[::-1], nodes[::-1]):
                         self.parseStack.append(arg)
                         self.parseTreeStack.append(node)
-                    sleep(0.1)
             else:
                 if not self.sameTerminal(token_pack[1]):
                     self.syntaxError.append((3, token_pack))
@@ -81,12 +79,13 @@ class Parser:
         return None
 
     def make_node(self, arg, token, parent):
-        node = None
         if isinstance(arg, NonTerminal):
             node = Node(arg.name, parent=parent)
         elif isinstance(arg, TokenType):
             node = Node((token[0].name, token[1]), parent=parent)
-        elif isinstance(arg, str) and arg in Char.SYMBOL:
+        elif arg in KEYWORDS:
+            node = Node((TokenType.KEYWORD.name, arg), parent=parent)
+        else:
             node = Node((TokenType.SYMBOL.name, arg), parent=parent)
         return node
 
