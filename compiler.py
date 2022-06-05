@@ -5,6 +5,7 @@ from copy import copy
 
 from anytree import RenderTree
 
+from code_gen import CodeGenerator
 from parser import Parser
 from scanner import Scanner
 from utils import KEYWORDS, TokenType
@@ -49,14 +50,14 @@ def write_syntax_errors(errors):
         if len(errors) == 0:
             f.write("There is no syntax error.")
         for error in errors:
-            f.write(f"#{error[1][0] + 1} : ")
+            f.write(f"#{error[1].lineno + 1} : ")
             if error[0] == 3:
                 f.write(f"syntax error, missing {error[-1]}\n")
             elif error[0] == 1:
-                if error[1][1][0] in [TokenType.SYMBOL, TokenType.KEYWORD]:
-                    arg = error[1][1][1]
+                if error[1].token_type in [TokenType.SYMBOL, TokenType.KEYWORD]:
+                    arg = error[1].lexim
                 else:
-                    arg = error[1][1][0].name
+                    arg = error[1].token_type.name
                 f.write(f"syntax error, illegal {arg}\n")
             elif error[0] == 2:
                 f.write(f"syntax error, missing {error[-1].name}\n")
@@ -77,8 +78,9 @@ if __name__ == '__main__':
     recognized_tokens = []
     symbols = copy(KEYWORDS)
     scanner = Scanner("input.txt", symbols)
+    code_gen = CodeGenerator()
 
-    parser = Parser(scanner)
+    parser = Parser(scanner, code_gen)
     parser.parse()
 
     parser.print_tree()

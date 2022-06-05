@@ -2,8 +2,10 @@ from collections import deque
 
 from anytree import Node, RenderTree
 
+from code_gen import CodeGenerator
 from scanner import Scanner
-from utils import TokenType, NonTerminal, KEYWORDS, EPSILON
+from utils import TokenPack
+from utils import TokenType, NonTerminal, KEYWORDS, EPSILON, ActionSymbols
 
 
 # TODO:
@@ -27,8 +29,9 @@ class Parser:
     lookahead = False
     current_token = None
 
-    def __init__(self, scanner: Scanner):
+    def __init__(self, scanner: Scanner, code_gen: CodeGenerator):
         self.scanner = scanner
+        self.code_gen = code_gen
         self.parseStack.extend([TokenType.EOF, NonTerminal.Program])
 
     def print_tree(self):
@@ -42,7 +45,7 @@ class Parser:
             if isinstance(self.parseStack[-1], NonTerminal):
                 self.derivate_non_terminal(self.current_token)
             else:
-                if not self.sameTerminal(self.current_token[1]):
+                if not self.same_terminal(self.current_token):
                     self.syntaxError.append((3, self.current_token, self.parseStack[-1]))
                     self.parseStack.pop()
                     node = self.parseTreeStack.pop()
@@ -51,16 +54,16 @@ class Parser:
                     terminal = self.parseStack.pop()
                     node: Node = self.parseTreeStack.pop()
                     if terminal == TokenType.ID:
-                        node.name = '(%s, %s)' % (TokenType.ID.name, self.current_token[1][1])
+                        node.name = '(%s, %s)' % (TokenType.ID.name, self.current_token.lexim)
                     self.go_next_token()
-            if self.current_token[1][0] == TokenType.EOF and len(self.parseStack) == 1:
+            if self.current_token.token_type == TokenType.EOF and len(self.parseStack) == 1:
                 if not self.syntaxError or self.syntaxError[-1][0] != 4:
                     Node('$', parent=self.parseTree)
                 break
 
-    def next_move(self, token_pack):
-        token = token_pack[0]
-        lexim = token_pack[1]
+    def next_move(self, token_pack: TokenPack):
+        token = token_pack.token_type
+        lexim = token_pack.lexim
         if token in (TokenType.KEYWORD, TokenType.SYMBOL):
             if (self.parseStack[-1], lexim) in ParseTable.next:
                 return ParseTable.next[(self.parseStack[-1], lexim)]
@@ -73,23 +76,23 @@ class Parser:
         if isinstance(arg, NonTerminal):
             node = Node(arg.name, parent=parent)
         elif isinstance(arg, TokenType):
-            node = Node('(%s, %s)' % (arg.name, token[1]), parent=parent)
+            node = Node('(%s, %s)' % (arg.name, token.lexim), parent=parent)
         elif arg in KEYWORDS:
             node = Node('(%s, %s)' % (TokenType.KEYWORD.name, arg), parent=parent)
         else:
             node = Node('(%s, %s)' % (TokenType.SYMBOL.name, arg), parent=parent)
         return node
 
-    def sameTerminal(self, token_pack):
-        token = token_pack[0]
-        lexim = token_pack[1]
+    def same_terminal(self, token_pack):
+        token = token_pack.token_type
+        lexim = token_pack.lexim
         if token in (TokenType.KEYWORD, TokenType.SYMBOL):
             return self.parseStack[-1] == lexim
         else:
             return self.parseStack[-1] == token
 
     def panic_mode(self, token_pack):
-        if token_pack[1][0] == TokenType.EOF:
+        if token_pack.token_type == TokenType.EOF:
             self.syntaxError.append((4, token_pack))  # errorType , (lineno, token)
             self.parseStack.clear()
             for node in self.parseTreeStack:
@@ -100,7 +103,7 @@ class Parser:
             self.go_next_token()
 
     def derivate_non_terminal(self, token_pack):
-        next_branch = self.next_move(token_pack[1])
+        next_branch = self.next_move(token_pack)
         if next_branch is None:
             self.panic_mode(token_pack)
         elif next_branch == -1:
@@ -116,7 +119,10 @@ class Parser:
                 Node(EPSILON, parent=parent)
             nodes = []
             for arg in next_branch:
-                nodes.append(self.make_node(arg, token_pack[1], parent))
+                if isinstance(arg, ActionSymbols):
+                    self.code_gen.handle(arg, token_pack)
+                else:
+                    nodes.append(self.make_node(arg, token_pack, parent))
             for arg, node in zip(next_branch[::-1], nodes[::-1]):
                 self.parseStack.append(arg)
                 self.parseTreeStack.append(node)
@@ -332,6 +338,6 @@ class ParseTable:
         (NonTerminal.Atom, '-'): -1,
         (NonTerminal.Atom, '*'): -1,
         (NonTerminal.Atom, '**'): -1,
-        (NonTerminal.Atom, TokenType.ID): (TokenType.ID,),
-        (NonTerminal.Atom, TokenType.NUM): (TokenType.NUM,)
+        (NonTerminal.Atom, TokenType.ID): (ActionSymbols.PID, TokenType.ID,),
+        (NonTerminal.Atom, TokenType.NUM): (ActionSymbols.NUM, TokenType.NUM,)
     }

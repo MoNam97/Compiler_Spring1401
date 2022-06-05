@@ -9,6 +9,7 @@ from lexical_errors import (
     UnmatchedCommentError,
     UnclosedCommentError
 )
+from utils import TokenPack
 from utils import TokenType, KEYWORDS, Char
 
 # TODO:
@@ -136,9 +137,9 @@ class Scanner:
             lookahead = self.current.value.lookahead
             if lookahead:
                 self.buffer = self.buffer[:-1]
-            result = (self.current.value.token_type, self.buffer)
-            if result[0] == TokenType.KEYWORD and self.buffer not in KEYWORDS:
-                result = (TokenType.ID, self.buffer)
+            result = TokenPack(-1, self.current.value.token_type, self.buffer)
+            if result.token_type == TokenType.KEYWORD and self.buffer not in KEYWORDS:
+                result = TokenPack(-1, TokenType.ID, self.buffer)
             Scanner.reset(self)
             return result, lookahead
         return None, False
@@ -175,17 +176,17 @@ class Scanner:
                 self.last_lineno = self.lineno
                 continue
             elif recognized_token:
-                current_token = (self.last_lineno, recognized_token)
-                if recognized_token[0] == TokenType.ID and recognized_token[1] not in self.symbols:
-                    self.symbols.append(recognized_token[1])
+                recognized_token.lineno = self.last_lineno
+                if recognized_token.token_type == TokenType.ID and recognized_token.lexim not in self.symbols:
+                    self.symbols.append(recognized_token.lexim)
                 self.last_lineno = self.lineno
-                if recognized_token[0] not in [TokenType.WHITESPACE, TokenType.COMMENT]:
-                    return current_token, lookahead
+                if recognized_token.token_type not in [TokenType.WHITESPACE, TokenType.COMMENT]:
+                    return recognized_token, lookahead
                 else:
                     continue
             if next_char == '\n':
                 self.lineno += 1
             if next_char == Char.EOF:
                 self.f.close()
-                return (self.last_lineno, (TokenType.EOF, '$')), False
+                return TokenPack(self.last_lineno, TokenType.EOF, '$'), False
 # Better to handle EOF in DFA

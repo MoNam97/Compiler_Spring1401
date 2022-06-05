@@ -1,6 +1,8 @@
 from enum import Enum
 from string import ascii_letters, digits, whitespace, printable
 
+from dataclasses import dataclass
+
 KEYWORDS = ['break', 'continue', 'def', 'else', 'if', 'return', 'while']
 EPSILON = 'epsilon'
 
@@ -84,3 +86,15 @@ class Char:
     COMMENT_SYMBOL = '/#'
     ALL = printable
     EOF = chr(3)
+
+
+class ActionSymbols(Enum):
+    PID = 0
+    NUM = 1
+
+
+@dataclass
+class TokenPack:
+    lineno: int
+    token_type: TokenType
+    lexim: str
