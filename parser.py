@@ -230,9 +230,11 @@ class ParseTable:
         (NonTerminal.Relational_Expression, ')'): -1,
         (NonTerminal.Relational_Expression, ':'): -1,
         (NonTerminal.Relational_Expression, TokenType.ID): (
-            NonTerminal.Expression, NonTerminal.Relop, NonTerminal.Expression),
+            NonTerminal.Expression, NonTerminal.Relop, ActionSymbols.SaveRelop, NonTerminal.Expression,
+            ActionSymbols.RelopAct),
         (NonTerminal.Relational_Expression, TokenType.NUM): (
-            NonTerminal.Expression, NonTerminal.Relop, NonTerminal.Expression),
+            NonTerminal.Expression, NonTerminal.Relop, ActionSymbols.SaveRelop, NonTerminal.Expression,
+            ActionSymbols.RelopAct),
 
         (NonTerminal.Relop, TokenType.ID): -1,
         (NonTerminal.Relop, TokenType.NUM): -1,

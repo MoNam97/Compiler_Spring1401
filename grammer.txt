@@ -28,7 +28,7 @@ Params -> #PID? ID Params_Prime
 Params -> ''	
 Params_Prime -> , #PID? ID Params_Prime	
 Params_Prime -> ''	
-If_stmt -> if #Sif Relational_Expression #JFalse : Statements #JHere Else_block #Eif		????
+If_stmt -> if Relational_Expression #JFalse : Statements #JHere Else_block #Eif		????
 Else_block -> else : Statements
 Else_block -> ''
 Iteration_stmt -> while #StartLoop ( Relational_Expression ) #CheckCond Statements  #EndLoop

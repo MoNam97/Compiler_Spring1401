@@ -94,6 +94,8 @@ class ActionSymbols(Enum):
     ADD = 3
     SUB = 4
     ASSIGN = 5
+    SaveRelop = 6
+    RelopAct = 7
 
 
 class AddrCode(Enum):

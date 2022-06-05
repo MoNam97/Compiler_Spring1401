@@ -7,6 +7,7 @@ INT_SIZE = 4
 
 class CodeGenerator:
     stack = None
+    temp_mem = None
 
     def __init__(self):
         self.stack = deque()
@@ -39,9 +40,26 @@ class CodeGenerator:
         self.stack.append(addr)
         self.pb.append(f"(ASSIGN, #{token_pack.lexim}, {addr}, )")
 
-    def _handle_arithmethic(self, operator):
-        operand1 = self.stack.pop()
+    def _handle_saverelop(self, token_pack):
+        self.temp_mem = token_pack.lexim
+
+    def _handle_relopact(self):
+        ######################  THIS could be handled with _handle_arithmethic
         operand2 = self.stack.pop()
+        operand1 = self.stack.pop()
+        addr = self._get_temp_address()
+        if self.temp_mem == '==':
+            self.pb.append(f"(EQ, {operand1}, {operand2}, {addr})")
+        elif self.temp_mem == '<':
+            self.pb.append(f"(LT, {operand1}, {operand2}, {addr})")
+        else:
+            print("Relational_Expression Bug. Relop not set")
+        self.stack.append(addr)
+        self.temp_mem = None
+
+    def _handle_arithmethic(self, operator):
+        operand2 = self.stack.pop()
+        operand1 = self.stack.pop()
         addr = self._get_temp_address()
         self.pb.append(f"({operator}, {operand1}, {operand2}, {addr})")
         self.stack.append(addr)
@@ -67,7 +85,9 @@ class CodeGenerator:
             ActionSymbols.MULT: self._handle_mult,
             ActionSymbols.SUB: self._handle_sub,
             ActionSymbols.ADD: self._handle_add,
-            ActionSymbols.ASSIGN: self._handle_assign
+            ActionSymbols.ASSIGN: self._handle_assign,
+            ActionSymbols.SaveRelop: self._handle_saverelop,
+            ActionSymbols.RelopAct: self._handle_relopact
         }
         if action_symbol not in handlers:
             print(f"Error: Unexpected actionsymbol {action_symbol}")
