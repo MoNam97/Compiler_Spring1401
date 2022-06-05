@@ -1,7 +1,6 @@
+from dataclasses import dataclass
 from enum import Enum
 from string import ascii_letters, digits, whitespace, printable
-
-from dataclasses import dataclass
 
 KEYWORDS = ['break', 'continue', 'def', 'else', 'if', 'return', 'while']
 EPSILON = 'epsilon'
@@ -90,7 +89,17 @@ class Char:
 
 class ActionSymbols(Enum):
     PID = 0
-    NUM = 1
+    PNUM = 1
+    MULT = 2
+    ADD = 3
+    SUB = 4
+
+
+class AddrCode(Enum):
+    ADD = 1
+    MULT = 2
+    SUB = 3
+    EQ = 4
 
 
 @dataclass

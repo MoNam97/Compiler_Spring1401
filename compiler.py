@@ -87,6 +87,8 @@ if __name__ == '__main__':
 
     print(parser.syntaxError)
 
+    print(*code_gen.pb, sep='\n')
+
     write_parse_tree(parser.parseTree)
     write_syntax_errors(parser.syntaxError)
     write_symbol_table(symbols)
