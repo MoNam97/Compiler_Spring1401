@@ -44,6 +44,10 @@ class Parser:
             # self.print_tree()
             if isinstance(self.parseStack[-1], NonTerminal):
                 self.derivate_non_terminal(self.current_token)
+            elif isinstance(self.parseStack[-1], ActionSymbols):
+                arg = self.parseStack[-1]
+                self.parseStack.pop()
+                self.code_gen.handle(arg, self.current_token)
             else:
                 if not self.same_terminal(self.current_token):
                     self.syntaxError.append((3, self.current_token, self.parseStack[-1]))
@@ -120,7 +124,7 @@ class Parser:
             nodes = []
             for arg in next_branch:
                 if isinstance(arg, ActionSymbols):
-                    self.code_gen.handle(arg, token_pack)
+                    nodes.append(None)
                 else:
                     nodes.append(self.make_node(arg, token_pack, parent))
             for arg, node in zip(next_branch[::-1], nodes[::-1]):

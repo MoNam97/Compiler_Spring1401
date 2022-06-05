@@ -28,10 +28,10 @@ class CodeGenerator:
         self.pb.append(f"(ASSIGN, #{token_pack.lexim}, {addr},)")
 
     def _handle_arithmethic(self, operator):
-        # operand1 = self.stack.pop()
-        # operand2 = self.stack.pop()
+        operand1 = self.stack.pop()
+        operand2 = self.stack.pop()
         addr = self._get_temp_address()
-        # self.pb.append(f"({operator}, {operand1}, {operand2}, {addr})")
+        self.pb.append(f"({operator}, {operand1}, {operand2}, {addr})")
         self.stack.append(addr)
 
     def _handle_add(self, _token_pack):
