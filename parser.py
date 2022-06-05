@@ -57,7 +57,7 @@ class Parser:
                 else:
                     terminal = self.parseStack.pop()
                     node: Node = self.parseTreeStack.pop()
-                    if terminal == TokenType.ID:
+                    if node and terminal == TokenType.ID:
                         node.name = '(%s, %s)' % (TokenType.ID.name, self.current_token.lexim)
                     self.go_next_token()
             if self.current_token.token_type == TokenType.EOF and len(self.parseStack) == 1:
@@ -184,10 +184,10 @@ class ParseTable:
         (NonTerminal.Compound_stmt, 'while'): (NonTerminal.Iteration_stmt,),
 
         (NonTerminal.Assignment_Call, ';'): -1,
-        (NonTerminal.Assignment_Call, TokenType.ID): (TokenType.ID, NonTerminal.B),
+        (NonTerminal.Assignment_Call, TokenType.ID): (ActionSymbols.PID, TokenType.ID, NonTerminal.B),
 
         (NonTerminal.B, ';'): -1,
-        (NonTerminal.B, '='): ('=', NonTerminal.C),
+        (NonTerminal.B, '='): ('=', NonTerminal.C, ActionSymbols.ASSIGN),
         (NonTerminal.B, '['): ('[', NonTerminal.Expression, ']', '=', NonTerminal.C),
         (NonTerminal.B, '('): ('(', NonTerminal.Arguments, ')'),
 

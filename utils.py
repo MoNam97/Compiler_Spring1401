@@ -93,6 +93,7 @@ class ActionSymbols(Enum):
     MULT = 2
     ADD = 3
     SUB = 4
+    ASSIGN = 5
 
 
 class AddrCode(Enum):

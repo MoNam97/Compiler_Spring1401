@@ -2,6 +2,8 @@ from collections import deque
 
 from utils import ActionSymbols
 
+INT_SIZE = 4
+
 
 class CodeGenerator:
     stack = None
@@ -10,22 +12,32 @@ class CodeGenerator:
         self.stack = deque()
         self.pb = []
         self.last_temp = 500
+        self.last_variable = 100
+        self.symbol_table = {}
 
     def _get_temp_address(self):
-        self.last_temp += 4
-        return self.last_temp - 4
+        self.last_temp += INT_SIZE
+        return self.last_temp - INT_SIZE
+
+    def _get_var_address(self):
+        self.last_variable += INT_SIZE
+        return self.last_variable - INT_SIZE
 
     def _find_addr(self, name):
-        return 100
+        if name in self.symbol_table:
+            return self.symbol_table[name]
+        addr = self._get_var_address()
+        self.symbol_table[name] = addr
+        return addr
 
     def _handle_pid(self, token_pack):
-        addr = self._find_addr(token_pack)
+        addr = self._find_addr(token_pack.lexim)
         self.stack.append(addr)
 
     def _handle_pnum(self, token_pack):
         addr = self._get_temp_address()
         self.stack.append(addr)
-        self.pb.append(f"(ASSIGN, #{token_pack.lexim}, {addr},)")
+        self.pb.append(f"(ASSIGN, #{token_pack.lexim}, {addr}, )")
 
     def _handle_arithmethic(self, operator):
         operand1 = self.stack.pop()
@@ -43,6 +55,11 @@ class CodeGenerator:
     def _handle_mult(self, _token_pack):
         self._handle_arithmethic("MULT")
 
+    def _handle_assign(self, _token_pack):
+        operand1 = self.stack.pop()
+        operand2 = self.stack.pop()
+        self.pb.append(f"(ASSIGN, {operand1}, {operand2}, )")
+
     def handle(self, action_symbol, token_pack):
         handlers = {
             ActionSymbols.PID: self._handle_pid,
@@ -50,9 +67,15 @@ class CodeGenerator:
             ActionSymbols.MULT: self._handle_mult,
             ActionSymbols.SUB: self._handle_sub,
             ActionSymbols.ADD: self._handle_add,
+            ActionSymbols.ASSIGN: self._handle_assign
         }
         if action_symbol not in handlers:
             print(f"Error: Unexpected actionsymbol {action_symbol}")
             return
         handler = handlers[action_symbol]
         handler(token_pack)
+
+    def print(self):
+        for idx, code in enumerate(self.pb):
+            print(f"{idx}\t{code}")
+        print(f"{len(self.pb)}\t(PRINT, {list(self.symbol_table.items())[-1][1]}, , )")

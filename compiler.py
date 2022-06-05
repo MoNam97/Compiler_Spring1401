@@ -83,11 +83,11 @@ if __name__ == '__main__':
     parser = Parser(scanner, code_gen)
     parser.parse()
 
-    parser.print_tree()
+    # parser.print_tree()
 
-    print(parser.syntaxError)
+    # print(parser.syntaxError)
 
-    print(*code_gen.pb, sep='\n')
+    code_gen.print()
 
     write_parse_tree(parser.parseTree)
     write_syntax_errors(parser.syntaxError)
