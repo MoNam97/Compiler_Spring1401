@@ -57,6 +57,26 @@ class CodeGenerator:
         self.stack.append(addr)
         self.temp_mem = None
 
+    def _handle_JFalse(self):
+        self.stack.append(len(self.pb))
+        self.pb.append("placeholder jump")
+
+    def _handle_JTrue(self):
+        i = self.stack.pop()
+        cond = self.stack.pop()
+        self.pb[i] = f"(JPF, {cond}, {len(self.pb) + 1}, )"
+        self.stack.append(len(self.pb))
+        self.pb.append("placeholder jump")
+
+    def _handle_Endif(self):
+        i = self.stack.pop()
+        self.pb[i] = f"(JP, {len(self.pb)}, , )"
+
+    def _handle_JHere(self):
+        i = self.stack.pop()
+        cond = self.stack.pop()
+        self.pb[i] = f"(JPF, {cond}, {len(self.pb)}, )"
+
     def _handle_arithmethic(self, operator):
         operand2 = self.stack.pop()
         operand1 = self.stack.pop()
@@ -87,7 +107,12 @@ class CodeGenerator:
             ActionSymbols.ADD: self._handle_add,
             ActionSymbols.ASSIGN: self._handle_assign,
             ActionSymbols.SaveRelop: self._handle_saverelop,
-            ActionSymbols.RelopAct: self._handle_relopact
+            ActionSymbols.RelopAct: self._handle_relopact,
+            ActionSymbols.JFalse: self._handle_JFalse,
+            ActionSymbols.JTrue: self._handle_JTrue,
+            ActionSymbols.Endif: self._handle_Endif,
+            ActionSymbols.JHere: self._handle_JHere
+
         }
         if action_symbol not in handlers:
             print(f"Error: Unexpected actionsymbol {action_symbol}")

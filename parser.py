@@ -220,10 +220,10 @@ class ParseTable:
         # if else while blocks
         (NonTerminal.If_stmt, ';'): -1,
         (NonTerminal.Iteration_stmt, ';'): -1,
-        (NonTerminal.Else_block, ';'): (),
+        (NonTerminal.Else_block, ';'): (ActionSymbols.JHere,),
         (NonTerminal.If_stmt, 'if'): (
-            'if', NonTerminal.Relational_Expression, ':', NonTerminal.Statements, NonTerminal.Else_block),
-        (NonTerminal.Else_block, 'else'): ('else', ':', NonTerminal.Statements),
+            'if', NonTerminal.Relational_Expression, ActionSymbols.JFalse, ':', NonTerminal.Statements, NonTerminal.Else_block),
+        (NonTerminal.Else_block, 'else'): ('else', ActionSymbols.JTrue, ':', NonTerminal.Statements, ActionSymbols.Endif),
         (NonTerminal.Iteration_stmt, 'while'): (
             'while', '(', NonTerminal.Relational_Expression, ')', NonTerminal.Statements),
 

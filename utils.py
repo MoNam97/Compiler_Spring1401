@@ -96,6 +96,11 @@ class ActionSymbols(Enum):
     ASSIGN = 5
     SaveRelop = 6
     RelopAct = 7
+    # if statement
+    JFalse = 8
+    JTrue = 9
+    Endif = 10
+    JHere = 11
 
 
 class AddrCode(Enum):
