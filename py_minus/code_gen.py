@@ -26,9 +26,34 @@ class CodeGenerator:
         self._while_start = deque()
         self._while_cond_addr = deque()
         self._while_cond_line = deque()
-        self.pb = [f"(JP, 21, , )"]
         self.last_temp = 500
         self.last_variable = 100
+        self.pb = [
+            f"(JP, 23, , )"
+        ]
+        self.initialize_output_function()
+
+    def initialize_output_function(self):
+        ra = self._get_temp_address()
+        rv = self._get_temp_address()
+        inp = self._get_var_address()
+
+        self.symbol_table.items.append(
+            SymbolTableItem(
+                lexim='output',
+                addr=len(self.pb),
+                type=FunctionData(
+                    addr=len(self.pb),
+                    ra=ra,
+                    rv=rv,
+                    args=[inp]
+                ),
+                scope=self.scope
+            ))
+        self.pb.extend([
+            f"(PRINT, {inp}, , )",
+            f"(JP, @{ra}, , )",
+        ])
 
     def _get_temp_address(self):
         self.last_temp += INT_SIZE
