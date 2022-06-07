@@ -43,7 +43,7 @@ class CodeGenerator:
     def _handle_saverelop(self, token_pack):
         self.temp_mem = token_pack.lexim
 
-    def _handle_relopact(self):
+    def _handle_relopact(self, _token_pack):
         ######################  THIS could be handled with _handle_arithmethic
         operand2 = self.stack.pop()
         operand1 = self.stack.pop()
@@ -57,22 +57,22 @@ class CodeGenerator:
         self.stack.append(addr)
         self.temp_mem = None
 
-    def _handle_JFalse(self):
+    def _handle_JFalse(self, _token_pack):
         self.stack.append(len(self.pb))
         self.pb.append("placeholder jump")
 
-    def _handle_JTrue(self):
+    def _handle_JTrue(self, _token_pack):
         i = self.stack.pop()
         cond = self.stack.pop()
         self.pb[i] = f"(JPF, {cond}, {len(self.pb) + 1}, )"
         self.stack.append(len(self.pb))
         self.pb.append("placeholder jump")
 
-    def _handle_Endif(self):
+    def _handle_Endif(self, _token_pack):
         i = self.stack.pop()
         self.pb[i] = f"(JP, {len(self.pb)}, , )"
 
-    def _handle_JHere(self):
+    def _handle_JHere(self, _token_pack):
         i = self.stack.pop()
         cond = self.stack.pop()
         self.pb[i] = f"(JPF, {cond}, {len(self.pb)}, )"
