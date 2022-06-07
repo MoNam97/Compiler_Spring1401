@@ -100,7 +100,8 @@ class Parser:
             self.syntaxError.append((4, token_pack))  # errorType , (lineno, token)
             self.parseStack.clear()
             for node in self.parseTreeStack:
-                node.parent = Node("seektir")
+                if node:
+                    node.parent = Node("seektir")
             self.parseStack.append(TokenType.EOF)
         else:
             self.syntaxError.append((1, token_pack))
@@ -222,18 +223,23 @@ class ParseTable:
         (NonTerminal.Iteration_stmt, ';'): -1,
         (NonTerminal.Else_block, ';'): (ActionSymbols.JHere,),
         (NonTerminal.If_stmt, 'if'): (
-            'if', NonTerminal.Relational_Expression, ActionSymbols.JFalse, ':', NonTerminal.Statements, NonTerminal.Else_block),
-        (NonTerminal.Else_block, 'else'): ('else', ActionSymbols.JTrue, ':', NonTerminal.Statements, ActionSymbols.Endif),
+            'if', NonTerminal.Relational_Expression, ActionSymbols.JFalse, ':', NonTerminal.Statements,
+            NonTerminal.Else_block),
+        (NonTerminal.Else_block, 'else'): (
+            'else', ActionSymbols.JTrue, ':', NonTerminal.Statements, ActionSymbols.Endif),
         (NonTerminal.Iteration_stmt, 'while'): (
-            'while', '(', NonTerminal.Relational_Expression, ')', NonTerminal.Statements),
+            ActionSymbols.StartLoop, 'while', '(',
+            NonTerminal.Relational_Expression,
+            ActionSymbols.CheckCond, ')',
+            NonTerminal.Statements, ActionSymbols.EndLoop),
 
         (NonTerminal.Relational_Expression, ')'): -1,
         (NonTerminal.Relational_Expression, ':'): -1,
         (NonTerminal.Relational_Expression, TokenType.ID): (
-            NonTerminal.Expression, NonTerminal.Relop, ActionSymbols.SaveRelop, NonTerminal.Expression,
+            NonTerminal.Expression, ActionSymbols.SaveRelop, NonTerminal.Relop, NonTerminal.Expression,
             ActionSymbols.RelopAct),
         (NonTerminal.Relational_Expression, TokenType.NUM): (
-            NonTerminal.Expression, NonTerminal.Relop, ActionSymbols.SaveRelop, NonTerminal.Expression,
+            NonTerminal.Expression, ActionSymbols.SaveRelop, NonTerminal.Relop, NonTerminal.Expression,
             ActionSymbols.RelopAct),
 
         (NonTerminal.Relop, TokenType.ID): -1,

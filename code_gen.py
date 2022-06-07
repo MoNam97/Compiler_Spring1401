@@ -59,14 +59,14 @@ class CodeGenerator:
 
     def _handle_JFalse(self, _token_pack):
         self.stack.append(len(self.pb))
-        self.pb.append("placeholder jump")
+        self.pb.append("placeholder jump jfalse")
 
     def _handle_JTrue(self, _token_pack):
         i = self.stack.pop()
         cond = self.stack.pop()
         self.pb[i] = f"(JPF, {cond}, {len(self.pb) + 1}, )"
         self.stack.append(len(self.pb))
-        self.pb.append("placeholder jump")
+        self.pb.append("placeholder jump jtrue")
 
     def _handle_Endif(self, _token_pack):
         i = self.stack.pop()
@@ -98,6 +98,20 @@ class CodeGenerator:
         operand2 = self.stack.pop()
         self.pb.append(f"(ASSIGN, {operand1}, {operand2}, )")
 
+    def _handle_start_loop(self, _token_pack):
+        self.stack.append(len(self.pb))
+
+    def _handle_check_cond(self, _token_pack):
+        self.stack.append(len(self.pb))
+        self.pb.append("placeholder while")
+
+    def _handle_end_loop(self, _token_pack):
+        jump_pb = self.stack.pop()
+        temp_cond_addr = self.stack.pop()
+        while_start = self.stack.pop()
+        self.pb.append(f"(JP, {while_start}, , )")
+        self.pb[jump_pb] = f"(JPF, {temp_cond_addr}, {len(self.pb)}, )"
+
     def handle(self, action_symbol, token_pack):
         handlers = {
             ActionSymbols.PID: self._handle_pid,
@@ -111,8 +125,11 @@ class CodeGenerator:
             ActionSymbols.JFalse: self._handle_JFalse,
             ActionSymbols.JTrue: self._handle_JTrue,
             ActionSymbols.Endif: self._handle_Endif,
-            ActionSymbols.JHere: self._handle_JHere
+            ActionSymbols.JHere: self._handle_JHere,
 
+            ActionSymbols.StartLoop: self._handle_start_loop,
+            ActionSymbols.CheckCond: self._handle_check_cond,
+            ActionSymbols.EndLoop: self._handle_end_loop,
         }
         if action_symbol not in handlers:
             print(f"Error: Unexpected actionsymbol {action_symbol}")

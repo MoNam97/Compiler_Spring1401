@@ -102,6 +102,11 @@ class ActionSymbols(Enum):
     Endif = 10
     JHere = 11
 
+    # while statement:
+    StartLoop = 12
+    CheckCond = 13
+    EndLoop = 14
+
 
 class AddrCode(Enum):
     ADD = 1
