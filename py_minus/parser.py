@@ -200,22 +200,24 @@ class ParseTable:
         (NonTerminal.List_Rest, ','): (',', NonTerminal.Expression, NonTerminal.List_Rest),
 
         (NonTerminal.Return_stmt, ';'): -1,
-        (NonTerminal.Return_stmt, 'return'): ('return', NonTerminal.Return_Value),
+        (NonTerminal.Return_stmt, 'return'): ('return', NonTerminal.Return_Value, ActionSymbols.FuncJBack),
         (NonTerminal.Return_Value, ';'): (),
-        (NonTerminal.Return_Value, TokenType.ID): (NonTerminal.Expression,),
-        (NonTerminal.Return_Value, TokenType.NUM): (NonTerminal.Expression,),
+        (NonTerminal.Return_Value, TokenType.ID): (NonTerminal.Expression, ActionSymbols.FuncStoreRV),
+        (NonTerminal.Return_Value, TokenType.NUM): (NonTerminal.Expression, ActionSymbols.FuncStoreRV),
 
         (NonTerminal.Global_stmt, ';'): -1,
         (NonTerminal.Global_stmt, 'global'): ('global', TokenType.ID),
 
         (NonTerminal.Function_def, ';'): -1,
         (NonTerminal.Function_def, 'def'): (
-            'def', TokenType.ID, '(', NonTerminal.Params, ')', ':', NonTerminal.Statements),
+            'def', ActionSymbols.FuncDef, TokenType.ID,
+            '(', NonTerminal.Params, ')', ':',
+            NonTerminal.Statements, ActionSymbols.FuncEnd),
 
         (NonTerminal.Params, ')'): (),
-        (NonTerminal.Params, TokenType.ID): (TokenType.ID, NonTerminal.Params_Prime),
+        (NonTerminal.Params, TokenType.ID): (ActionSymbols.FuncPID, TokenType.ID, NonTerminal.Params_Prime),
         (NonTerminal.Params_Prime, ')'): (),
-        (NonTerminal.Params_Prime, ','): (',', TokenType.ID, NonTerminal.Params_Prime),
+        (NonTerminal.Params_Prime, ','): (',', ActionSymbols.FuncPID, TokenType.ID, NonTerminal.Params_Prime),
 
         # if else while blocks
         (NonTerminal.If_stmt, ';'): -1,
@@ -319,7 +321,9 @@ class ParseTable:
         (NonTerminal.Primary, ';'): (),
         (NonTerminal.Primary, '['): ('[', NonTerminal.Expression, ']', NonTerminal.Primary),
         (NonTerminal.Primary, ']'): (),
-        (NonTerminal.Primary, '('): ('(', NonTerminal.Arguments, ')', NonTerminal.Primary),
+        (NonTerminal.Primary, '('): ('(', ActionSymbols.FuncCallStart,
+                                     NonTerminal.Arguments,
+                                     ActionSymbols.FuncCallEnd, ')', NonTerminal.Primary),
         (NonTerminal.Primary, ')'): (),
         (NonTerminal.Primary, ','): (),
         (NonTerminal.Primary, ':'): (),
@@ -330,11 +334,14 @@ class ParseTable:
         (NonTerminal.Primary, '*'): (),
 
         (NonTerminal.Arguments, ')'): (),
-        (NonTerminal.Arguments, TokenType.ID): (NonTerminal.Expression, NonTerminal.Arguments_Prime),
-        (NonTerminal.Arguments, TokenType.NUM): (NonTerminal.Expression, NonTerminal.Arguments_Prime),
+        (NonTerminal.Arguments, TokenType.ID): (NonTerminal.Expression, ActionSymbols.FuncSaveArgs,
+                                                NonTerminal.Arguments_Prime),
+        (NonTerminal.Arguments, TokenType.NUM): (NonTerminal.Expression, ActionSymbols.FuncSaveArgs,
+                                                 NonTerminal.Arguments_Prime),
 
         (NonTerminal.Arguments_Prime, ')'): (),
-        (NonTerminal.Arguments_Prime, ','): (',', NonTerminal.Expression, NonTerminal.Arguments_Prime),
+        (NonTerminal.Arguments_Prime, ','): (',', NonTerminal.Expression, ActionSymbols.FuncSaveArgs,
+                                             NonTerminal.Arguments_Prime),
 
         (NonTerminal.Atom, ';'): -1,
         (NonTerminal.Atom, '['): -1,

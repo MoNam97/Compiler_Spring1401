@@ -19,14 +19,14 @@ C -> Expression
 C -> [ Expression List_Rest ]
 List_Rest -> , Expression List_Rest	
 List_Rest -> ''	
-Return_stmt -> return Return_Value # J back	
-Return_Value -> Expression #Smth	
+Return_stmt -> return Return_Value #FuncJBack
+Return_Value -> Expression #FuncStoreRV
 Return_Value -> ''	
 Global_stmt -> global #GID ID	
-Function_def -> def #DefFunc ID ( Params ) : Statements	
-Params -> #PID? ID Params_Prime	
+Function_def -> def #DefFunc ID ( Params ) : Statements #FuncEnd
+Params -> #FuncPID ID Params_Prime
 Params -> ''	
-Params_Prime -> , #PID? ID Params_Prime	
+Params_Prime -> , #FuncPID ID Params_Prime
 Params_Prime -> ''	
 If_stmt -> if Relational_Expression #JFalse : Statements #JHere Else_block #Eif		????
 Else_block -> else : Statements
@@ -46,11 +46,11 @@ Factor -> Atom Power
 Power -> ** Factor #Power
 Power -> Primary
 Primary -> [ Expression ] #OffSet? Primary
-Primary -> ( Arguments ) #funcCall? Primary
+Primary -> (#FuncCallStart Arguments  #FuncCallEnd) Primary
 Primary -> ''
-Arguments -> Expression #SaveArgs Arguments_Prime
+Arguments -> Expression #FuncSaveArgs Arguments_Prime
 Arguments -> ''
-Arguments_Prime -> , Expression #SaveArgs Arguments_Prime
+Arguments_Prime -> , Expression #FuncSaveArgs  Arguments_Prime
 Arguments_Prime -> ''
 Atom -> #PID ID
 Atom -> #PNUM NUM

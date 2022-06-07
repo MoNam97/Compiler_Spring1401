@@ -110,6 +110,16 @@ class ActionSymbols(Enum):
     LoopBreak = 15
     LoopContinue = 16
 
+    # function statement:
+    FuncDef = 17
+    FuncPID = 18
+    FuncEnd = 19
+    FuncCallStart = 20
+    FuncCallEnd = 21
+    FuncSaveArgs = 22
+    FuncStoreRV = 23
+    FuncJBack = 24
+
 
 class AddrCode(Enum):
     ADD = 1
@@ -132,7 +142,6 @@ class ListData:
 
 @dataclass
 class FunctionData:
-    name: str
     addr: int
     ra: int
     rv: int

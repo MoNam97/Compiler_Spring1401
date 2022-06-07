@@ -1,9 +1,11 @@
 from collections import deque
 
-from py_minus.utils import ActionSymbols, SymbolTable, SymbolTableItem
+from py_minus.utils import ActionSymbols, SymbolTable, SymbolTableItem, FunctionData
 
 INT_SIZE = 4
 
+
+# TODO: Consider if and return confilicts
 
 class CodeGenerator:
     stack = None
@@ -20,7 +22,7 @@ class CodeGenerator:
         self._while_start = deque()
         self._while_cond_addr = deque()
         self._while_cond_line = deque()
-        self.pb = []
+        self.pb = [f"(JP, 21, , )"]
         self.last_temp = 500
         self.last_variable = 100
 
@@ -150,6 +152,74 @@ class CodeGenerator:
     def _handle_loop_continue(self, _token_pack):
         self.pb.append(f"(JP, {self._while_start[-1]}, , )")
 
+    def _handle_func_def(self, token_pack):
+        ra = self._get_temp_address()
+        rv = self._get_temp_address()
+        self.stack.append(len(self.symbol_table.items))
+        self.symbol_table.items.append(
+            SymbolTableItem(
+                lexim=token_pack.lexim,
+                addr=len(self.pb),
+                type=FunctionData(
+                    addr=len(self.pb),
+                    ra=ra,
+                    rv=rv,
+                    args=[]
+                ),
+                scope=self.scope
+            ))
+        self.increase_scope()
+
+    def _handle_func_pid(self, token_pack):
+        addr = self._find_addr(token_pack.lexim)
+        assert isinstance(self.symbol_table.items[self.stack[-1]].type, FunctionData)
+        self.symbol_table.items[self.stack[-1]].type.args.append(addr)
+
+    def _handle_func_end(self, _token_pack):
+        func_idx = self.stack.pop()
+        ra = self.symbol_table.items[func_idx].type.ra
+        self.pb.append(f"(JP, @{ra}, , )")
+        self.decrease_scope()
+
+    def _handle_func_call_start(self, _token_pack):
+        self.stack.append(0)
+
+    def _handle_func_call_end(self, _token_pack):
+        func_addr = self.stack[-2]
+        func_data = self._find_func_data(func_addr)
+        self.stack.pop()
+        self.stack.pop()
+        self.stack.append(func_data.rv)
+        self.pb.append(f"(ASSIGN, #{len(self.pb) + 2}, {func_data.ra}, )")
+        self.pb.append(f"(JP, {func_data.addr}, , )")
+
+    def _handle_func_save_args(self, _token_pack):
+        arg_addr = self.stack.pop()
+        idx = self.stack[-1]
+        func_addr = self.stack[-2]
+        func_data = self._find_func_data(func_addr)
+        self.pb.append(f"(ASSIGN, {arg_addr}, {func_data.args[idx]}, )")
+        self.stack[-1] += 1
+
+    def _handle_func_j_back(self, _token_pack):
+        func_idx = self.stack[-1]
+        ra = self.symbol_table.items[func_idx].type.ra
+        self.pb.append(f"(JP, @{ra}, , )")
+
+    def _handle_func_store_rv(self, _token_pack):
+        addr = self.stack.pop()
+        func_idx = self.stack[-1]
+        self.pb.append(f"(ASSIGN, {addr}, {self.symbol_table.items[func_idx].type.rv}, )")
+
+    def _find_func_data(self, func_addr):
+        func_data = None
+        for item in self.symbol_table.items[::-1]:
+            if func_addr == item.addr:
+                func_data = item.type
+        assert func_data is not None
+        assert isinstance(func_data, FunctionData)
+        return func_data
+
     def handle(self, action_symbol, token_pack):
         handlers = {
             ActionSymbols.PID: self._handle_pid,
@@ -170,6 +240,15 @@ class CodeGenerator:
             ActionSymbols.EndLoop: self._handle_end_loop,
             ActionSymbols.LoopBreak: self._handle_loop_break,
             ActionSymbols.LoopContinue: self._handle_loop_continue,
+
+            ActionSymbols.FuncDef: self._handle_func_def,
+            ActionSymbols.FuncPID: self._handle_func_pid,
+            ActionSymbols.FuncEnd: self._handle_func_end,
+            ActionSymbols.FuncCallStart: self._handle_func_call_start,
+            ActionSymbols.FuncCallEnd: self._handle_func_call_end,
+            ActionSymbols.FuncSaveArgs: self._handle_func_save_args,
+            ActionSymbols.FuncStoreRV: self._handle_func_store_rv,
+            ActionSymbols.FuncJBack: self._handle_func_j_back,
         }
         if action_symbol not in handlers:
             print(f"Error: Unexpected actionsymbol {action_symbol}")
