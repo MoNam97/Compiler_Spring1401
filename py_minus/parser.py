@@ -2,10 +2,9 @@ from collections import deque
 
 from anytree import Node, RenderTree
 
-from code_gen import CodeGenerator
-from scanner import Scanner
-from utils import TokenPack
-from utils import TokenType, NonTerminal, KEYWORDS, EPSILON, ActionSymbols
+from py_minus.code_gen import CodeGenerator
+from py_minus.scanner import Scanner
+from py_minus.utils import TokenPack, TokenType, NonTerminal, KEYWORDS, EPSILON, ActionSymbols
 
 
 # TODO:
@@ -120,7 +119,7 @@ class Parser:
             parent = self.parseTreeStack[-1]
             self.parseTreeStack.pop()
             self.parseStack.pop()
-            if next_branch == ():
+            if next_branch == () or (len(next_branch) == 1 and isinstance(next_branch[0], ActionSymbols)):
                 Node(EPSILON, parent=parent)
             nodes = []
             for arg in next_branch:
@@ -189,7 +188,7 @@ class ParseTable:
 
         (NonTerminal.B, ';'): -1,
         (NonTerminal.B, '='): ('=', NonTerminal.C, ActionSymbols.ASSIGN),
-        (NonTerminal.B, '['): ('[', NonTerminal.Expression, ']', '=', NonTerminal.C),
+        (NonTerminal.B, '['): ('[', NonTerminal.Expression, ']', '=', NonTerminal.C, ActionSymbols.ASSIGN),
         (NonTerminal.B, '('): ('(', NonTerminal.Arguments, ')'),
 
         (NonTerminal.C, ';'): -1,

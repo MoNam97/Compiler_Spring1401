@@ -4,11 +4,10 @@
 from copy import copy
 
 from anytree import RenderTree
-
-from code_gen import CodeGenerator
-from parser import Parser
-from scanner import Scanner
-from utils import KEYWORDS, TokenType
+from py_minus.code_gen import CodeGenerator
+from py_minus.parser import Parser
+from py_minus.scanner import Scanner
+from py_minus.utils import KEYWORDS, TokenType
 
 
 def write_tokens(recognized_tokens):

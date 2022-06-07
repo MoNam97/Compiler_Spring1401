@@ -2,15 +2,14 @@ from collections import namedtuple
 from enum import Enum
 from string import punctuation
 
-from lexical_errors import (
+from py_minus.lexical_errors import (
     BaseLexicalError,
     InvalidNumberError,
     InvalidInputError,
     UnmatchedCommentError,
     UnclosedCommentError
 )
-from utils import TokenPack
-from utils import TokenType, KEYWORDS, Char
+from py_minus.utils import TokenPack, TokenType, KEYWORDS, Char
 
 # TODO:
 # [x] Handle Invalid Inputs

@@ -1,13 +1,11 @@
 from collections import deque
-
-from utils import ActionSymbols
+from py_minus.utils import ActionSymbols
 
 INT_SIZE = 4
 
 
 class CodeGenerator:
     stack = None
-    temp_mem = None
 
     def __init__(self):
         self.stack = deque()
@@ -41,23 +39,29 @@ class CodeGenerator:
         self.pb.append(f"(ASSIGN, #{token_pack.lexim}, {addr}, )")
 
     def _handle_saverelop(self, token_pack):
-        self.temp_mem = token_pack.lexim
+        if token_pack.lexim == '==':
+            self.stack.append(0)
+        elif token_pack.lexim == '<':
+            self.stack.append(1)
+        else:
+            print("not a relop")
 
     def _handle_relopact(self, _token_pack):
         ######################  THIS could be handled with _handle_arithmethic
         operand2 = self.stack.pop()
+        operator = self.stack.pop()
         operand1 = self.stack.pop()
         addr = self._get_temp_address()
-        if self.temp_mem == '==':
+        if operator == 0:
             self.pb.append(f"(EQ, {operand1}, {operand2}, {addr})")
-        elif self.temp_mem == '<':
+        elif operator == 1:
             self.pb.append(f"(LT, {operand1}, {operand2}, {addr})")
         else:
             print("Relational_Expression Bug. Relop not set")
         self.stack.append(addr)
         self.temp_mem = None
 
-    def _handle_JFalse(self, _token_pack):
+    def _handle_j_false(self, _token_pack):
         self.stack.append(len(self.pb))
         self.pb.append("placeholder jump jfalse")
 
@@ -122,7 +126,7 @@ class CodeGenerator:
             ActionSymbols.ASSIGN: self._handle_assign,
             ActionSymbols.SaveRelop: self._handle_saverelop,
             ActionSymbols.RelopAct: self._handle_relopact,
-            ActionSymbols.JFalse: self._handle_JFalse,
+            ActionSymbols.JFalse: self._handle_j_false,
             ActionSymbols.JTrue: self._handle_JTrue,
             ActionSymbols.Endif: self._handle_Endif,
             ActionSymbols.JHere: self._handle_JHere,
