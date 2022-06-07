@@ -9,6 +9,8 @@ INT_SIZE = 4
 
 class CodeGenerator:
     stack = None
+    if_stack = None
+    func_stack = None
     _while_start = None
     _while_cond_addr = None
     _while_cond_line = None
@@ -19,6 +21,8 @@ class CodeGenerator:
     def __init__(self):
         self.symbol_table = SymbolTable(items=[])
         self.stack = deque()
+        self.if_stack = deque()
+        self.func_stack = deque()
         self._while_start = deque()
         self._while_cond_addr = deque()
         self._while_cond_line = deque()
@@ -80,25 +84,28 @@ class CodeGenerator:
         self.temp_mem = None
 
     def _handle_j_false(self, _token_pack):
-        self.stack.append(len(self.pb))
+        self.if_stack.append(self.stack.pop())
+        self.if_stack.append(len(self.pb))
         self.pb.append("placeholder jump jfalse")
         self.increase_scope()
 
     def _handle_JTrue(self, _token_pack):
-        i = self.stack.pop()
-        cond = self.stack.pop()
+        self.decrease_scope()
+        i = self.if_stack.pop()
+        cond = self.if_stack.pop()
         self.pb[i] = f"(JPF, {cond}, {len(self.pb) + 1}, )"
-        self.stack.append(len(self.pb))
+        self.if_stack.append(len(self.pb))
         self.pb.append("placeholder jump jtrue")
+        self.increase_scope()
 
     def _handle_Endif(self, _token_pack):
-        i = self.stack.pop()
+        i = self.if_stack.pop()
         self.pb[i] = f"(JP, {len(self.pb)}, , )"
         self.decrease_scope()
 
     def _handle_JHere(self, _token_pack):
-        i = self.stack.pop()
-        cond = self.stack.pop()
+        i = self.if_stack.pop()
+        cond = self.if_stack.pop()
         self.pb[i] = f"(JPF, {cond}, {len(self.pb)}, )"
         self.decrease_scope()
 
@@ -155,7 +162,7 @@ class CodeGenerator:
     def _handle_func_def(self, token_pack):
         ra = self._get_temp_address()
         rv = self._get_temp_address()
-        self.stack.append(len(self.symbol_table.items))
+        self.func_stack.append(len(self.symbol_table.items))
         self.symbol_table.items.append(
             SymbolTableItem(
                 lexim=token_pack.lexim,
@@ -172,43 +179,42 @@ class CodeGenerator:
 
     def _handle_func_pid(self, token_pack):
         addr = self._find_addr(token_pack.lexim)
-        assert isinstance(self.symbol_table.items[self.stack[-1]].type, FunctionData)
-        self.symbol_table.items[self.stack[-1]].type.args.append(addr)
+        assert isinstance(self.symbol_table.items[self.func_stack[-1]].type, FunctionData)
+        self.symbol_table.items[self.func_stack[-1]].type.args.append(addr)
 
     def _handle_func_end(self, _token_pack):
-        func_idx = self.stack.pop()
+        func_idx = self.func_stack.pop()
         ra = self.symbol_table.items[func_idx].type.ra
         self.pb.append(f"(JP, @{ra}, , )")
         self.decrease_scope()
 
     def _handle_func_call_start(self, _token_pack):
-        self.stack.append(0)
+        self.func_stack.append(0)
 
     def _handle_func_call_end(self, _token_pack):
-        func_addr = self.stack[-2]
+        func_addr = self.stack.pop()
+        self.func_stack.pop()
         func_data = self._find_func_data(func_addr)
-        self.stack.pop()
-        self.stack.pop()
         self.stack.append(func_data.rv)
         self.pb.append(f"(ASSIGN, #{len(self.pb) + 2}, {func_data.ra}, )")
         self.pb.append(f"(JP, {func_data.addr}, , )")
 
     def _handle_func_save_args(self, _token_pack):
         arg_addr = self.stack.pop()
-        idx = self.stack[-1]
-        func_addr = self.stack[-2]
+        idx = self.func_stack[-1]
+        func_addr = self.stack[-1]
         func_data = self._find_func_data(func_addr)
         self.pb.append(f"(ASSIGN, {arg_addr}, {func_data.args[idx]}, )")
-        self.stack[-1] += 1
+        self.func_stack[-1] += 1
 
     def _handle_func_j_back(self, _token_pack):
-        func_idx = self.stack[-1]
+        func_idx = self.func_stack[-1]
         ra = self.symbol_table.items[func_idx].type.ra
         self.pb.append(f"(JP, @{ra}, , )")
 
     def _handle_func_store_rv(self, _token_pack):
         addr = self.stack.pop()
-        func_idx = self.stack[-1]
+        func_idx = self.func_stack[-1]
         self.pb.append(f"(ASSIGN, {addr}, {self.symbol_table.items[func_idx].type.rv}, )")
 
     def _find_func_data(self, func_addr):
@@ -267,6 +273,11 @@ class CodeGenerator:
         self.scope -= 1
 
     def print(self):
+        assert self.scope == 0
+        assert len(self.stack) == 0
+        assert len(self.if_stack) == 0
+        assert len(self.func_stack) == 0
+
         for idx, code in enumerate(self.pb):
             print(f"{idx}\t{code}")
         print(f"{len(self.pb)}\t(PRINT, {self.symbol_table.items[-1].addr}, , )")
