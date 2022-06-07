@@ -1,3 +1,4 @@
+import sys
 from collections import deque
 
 from py_minus.utils import ActionSymbols, SymbolTable, SymbolTableItem, FunctionData
@@ -303,7 +304,7 @@ class CodeGenerator:
                 break
         self.scope -= 1
 
-    def print(self):
+    def print(self, file=sys.stdout):
         assert self.scope == 0
         assert len(self.stack) == 0
         assert len(self.if_stack) == 0
@@ -314,4 +315,4 @@ class CodeGenerator:
         self.pb[0] = f"(ASSIGN, #{len(self.pb)}, {func_data.ra}, )"
         self.pb[1] = f"(JP, {main_addr}, , )"
         for idx, code in enumerate(self.pb):
-            print(f"{idx}\t{code}")
+            print(f"{idx}\t{code}", file=file)

@@ -4,6 +4,7 @@
 from copy import copy
 
 from anytree import RenderTree
+
 from py_minus.code_gen import CodeGenerator
 from py_minus.parser import Parser
 from py_minus.scanner import Scanner
@@ -73,6 +74,11 @@ def write_parse_tree(tree):
             f.write("%s%s\n" % (pre, node.name))
 
 
+def write_ouptut(gen):
+    with open("output.txt", "w+") as f:
+        gen.print(f)
+
+
 if __name__ == '__main__':
     recognized_tokens = []
     symbols = copy(KEYWORDS)
@@ -88,6 +94,7 @@ if __name__ == '__main__':
 
     code_gen.print()
 
+    write_ouptut(code_gen)
     write_parse_tree(parser.parseTree)
     write_syntax_errors(parser.syntaxError)
     write_symbol_table(symbols)
