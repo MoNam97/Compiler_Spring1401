@@ -172,8 +172,8 @@ class ParseTable:
         (NonTerminal.Statement, 'while'): (NonTerminal.Compound_stmt,),
 
         (NonTerminal.Simple_stmt, ';'): -1,
-        (NonTerminal.Simple_stmt, 'break'): ('break',),
-        (NonTerminal.Simple_stmt, 'continue'): ('continue',),
+        (NonTerminal.Simple_stmt, 'break'): ('break', ActionSymbols.LoopBreak),
+        (NonTerminal.Simple_stmt, 'continue'): ('continue', ActionSymbols.LoopContinue),
         (NonTerminal.Simple_stmt, TokenType.ID): (NonTerminal.Assignment_Call,),
         (NonTerminal.Simple_stmt, 'return'): (NonTerminal.Return_stmt,),
         (NonTerminal.Simple_stmt, 'global'): (NonTerminal.Global_stmt,),

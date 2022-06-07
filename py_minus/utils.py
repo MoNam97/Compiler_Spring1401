@@ -106,6 +106,8 @@ class ActionSymbols(Enum):
     StartLoop = 12
     CheckCond = 13
     EndLoop = 14
+    LoopBreak = 15
+    LoopContinue = 16
 
 
 class AddrCode(Enum):
