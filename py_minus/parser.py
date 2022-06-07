@@ -187,13 +187,13 @@ class ParseTable:
         (NonTerminal.Assignment_Call, TokenType.ID): (ActionSymbols.PID, TokenType.ID, NonTerminal.B),
 
         (NonTerminal.B, ';'): -1,
-        (NonTerminal.B, '='): ('=', NonTerminal.C, ActionSymbols.ASSIGN),
-        (NonTerminal.B, '['): ('[', NonTerminal.Expression, ']', '=', NonTerminal.C, ActionSymbols.ASSIGN),
+        (NonTerminal.B, '='): ('=', NonTerminal.C),
+        (NonTerminal.B, '['): ('[', NonTerminal.Expression, ']', '=', NonTerminal.C),
         (NonTerminal.B, '('): ('(', NonTerminal.Arguments, ')'),
 
         (NonTerminal.C, ';'): -1,
-        (NonTerminal.C, TokenType.ID): (NonTerminal.Expression,),
-        (NonTerminal.C, TokenType.NUM): (NonTerminal.Expression,),
+        (NonTerminal.C, TokenType.ID): (NonTerminal.Expression, ActionSymbols.ASSIGN),
+        (NonTerminal.C, TokenType.NUM): (NonTerminal.Expression, ActionSymbols.ASSIGN),
         (NonTerminal.C, '['): ('[', NonTerminal.Expression, NonTerminal.List_Rest, ']'),
 
         (NonTerminal.List_Rest, ']'): (),

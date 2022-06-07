@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 from enum import Enum
 from string import ascii_letters, digits, whitespace, printable
+from typing import List, Union
 
 KEYWORDS = ['break', 'continue', 'def', 'else', 'if', 'return', 'while']
 EPSILON = 'epsilon'
@@ -122,3 +123,30 @@ class TokenPack:
     lineno: int
     token_type: TokenType
     lexim: str
+
+
+@dataclass
+class ListData:
+    pass
+
+
+@dataclass
+class FunctionData:
+    name: str
+    addr: int
+    ra: int
+    rv: int
+    args: List[int]
+
+
+@dataclass
+class SymbolTableItem:
+    lexim: str
+    addr: int
+    type: Union[FunctionData, ListData, None]
+    scope: int
+
+
+@dataclass
+class SymbolTable:
+    items: List[SymbolTableItem]

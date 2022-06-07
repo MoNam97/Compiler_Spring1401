@@ -1,6 +1,6 @@
 from collections import deque
 
-from py_minus.utils import ActionSymbols
+from py_minus.utils import ActionSymbols, SymbolTable, SymbolTableItem
 
 INT_SIZE = 4
 
@@ -11,7 +11,11 @@ class CodeGenerator:
     _while_cond_addr = None
     _while_cond_line = None
 
+    symbol_table = None
+    scope = 0
+
     def __init__(self):
+        self.symbol_table = SymbolTable(items=[])
         self.stack = deque()
         self._while_start = deque()
         self._while_cond_addr = deque()
@@ -19,7 +23,6 @@ class CodeGenerator:
         self.pb = []
         self.last_temp = 500
         self.last_variable = 100
-        self.symbol_table = {}
 
     def _get_temp_address(self):
         self.last_temp += INT_SIZE
@@ -30,10 +33,16 @@ class CodeGenerator:
         return self.last_variable - INT_SIZE
 
     def _find_addr(self, name):
-        if name in self.symbol_table:
-            return self.symbol_table[name]
+        for item in self.symbol_table.items[::-1]:
+            if name == item.lexim:
+                return item.addr
         addr = self._get_var_address()
-        self.symbol_table[name] = addr
+        self.symbol_table.items.append(SymbolTableItem(
+            lexim=name,
+            addr=addr,
+            type=None,
+            scope=self.scope
+        ))
         return addr
 
     def _handle_pid(self, token_pack):
@@ -71,6 +80,7 @@ class CodeGenerator:
     def _handle_j_false(self, _token_pack):
         self.stack.append(len(self.pb))
         self.pb.append("placeholder jump jfalse")
+        self.increase_scope()
 
     def _handle_JTrue(self, _token_pack):
         i = self.stack.pop()
@@ -82,11 +92,13 @@ class CodeGenerator:
     def _handle_Endif(self, _token_pack):
         i = self.stack.pop()
         self.pb[i] = f"(JP, {len(self.pb)}, , )"
+        self.decrease_scope()
 
     def _handle_JHere(self, _token_pack):
         i = self.stack.pop()
         cond = self.stack.pop()
         self.pb[i] = f"(JPF, {cond}, {len(self.pb)}, )"
+        self.decrease_scope()
 
     def _handle_arithmethic(self, operator):
         operand2 = self.stack.pop()
@@ -118,6 +130,7 @@ class CodeGenerator:
         self._while_cond_line.append(len(self.pb))
         self.stack.append(len(self.pb))
         self.pb.append("placeholder while")
+        self.increase_scope()
 
     def _handle_end_loop(self, _token_pack):
         jump_pb = self.stack.pop()
@@ -128,6 +141,7 @@ class CodeGenerator:
         self._while_start.pop()
         self._while_cond_addr.pop()
         self._while_cond_line.pop()
+        self.decrease_scope()
 
     def _handle_loop_break(self, _token_pack):
         self.pb.append(f"(ASSIGN, #0, {self._while_cond_addr[-1]}, )")
@@ -163,7 +177,17 @@ class CodeGenerator:
         handler = handlers[action_symbol]
         handler(token_pack)
 
+    def increase_scope(self):
+        self.scope += 1
+
+    def decrease_scope(self):
+        for idx, item in enumerate(self.symbol_table.items):
+            if item.scope == self.scope:
+                self.symbol_table.items = self.symbol_table.items[0:idx]
+                break
+        self.scope -= 1
+
     def print(self):
         for idx, code in enumerate(self.pb):
             print(f"{idx}\t{code}")
-        print(f"{len(self.pb)}\t(PRINT, {list(self.symbol_table.items())[-1][1]}, , )")
+        print(f"{len(self.pb)}\t(PRINT, {self.symbol_table.items[-1].addr}, , )")
