@@ -29,6 +29,7 @@ class CodeGenerator:
         self.last_temp = 500
         self.last_variable = 100
         self.pb = [
+            f"(JP, 23, , )",
             f"(JP, 23, , )"
         ]
         self.initialize_output_function()
@@ -307,7 +308,10 @@ class CodeGenerator:
         assert len(self.stack) == 0
         assert len(self.if_stack) == 0
         assert len(self.func_stack) == 0
-
+        main_addr = self._find_addr('main')
+        func_data = self._find_func_data(main_addr)
+        self.pb.append("(ASSIGN, #1, 100, )")
+        self.pb[0] = f"(ASSIGN, #{len(self.pb)}, {func_data.ra}, )"
+        self.pb[1] = f"(JP, {main_addr}, , )"
         for idx, code in enumerate(self.pb):
             print(f"{idx}\t{code}")
-        print(f"{len(self.pb)}\t(PRINT, {self.symbol_table.items[-1].addr}, , )")
