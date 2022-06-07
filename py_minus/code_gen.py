@@ -216,13 +216,17 @@ class CodeGenerator:
     def _handle_func_call_start(self, _token_pack):
         self.func_stack.append(0)
 
-    def _handle_func_call_end(self, _token_pack):
+    def _handle_func_call_end(self, _token_pack, store_result=True):
         func_addr = self.stack.pop()
         self.func_stack.pop()
         func_data = self._find_func_data(func_addr)
-        self.stack.append(func_data.rv)
+        if store_result:
+            self.stack.append(func_data.rv)
         self.pb.append(f"(ASSIGN, #{len(self.pb) + 2}, {func_data.ra}, )")
         self.pb.append(f"(JP, {func_data.addr}, , )")
+
+    def _handle_func_call_end2(self, _token_pack):
+        self._handle_func_call_end(_token_pack, store_result=False)
 
     def _handle_func_save_args(self, _token_pack):
         arg_addr = self.stack.pop()
@@ -277,6 +281,7 @@ class CodeGenerator:
             ActionSymbols.FuncEnd: self._handle_func_end,
             ActionSymbols.FuncCallStart: self._handle_func_call_start,
             ActionSymbols.FuncCallEnd: self._handle_func_call_end,
+            ActionSymbols.FuncCallEnd2: self._handle_func_call_end2,
             ActionSymbols.FuncSaveArgs: self._handle_func_save_args,
             ActionSymbols.FuncStoreRV: self._handle_func_store_rv,
             ActionSymbols.FuncJBack: self._handle_func_j_back,

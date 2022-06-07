@@ -46,6 +46,7 @@ class Parser:
             elif isinstance(self.parseStack[-1], ActionSymbols):
                 arg = self.parseStack[-1]
                 self.parseStack.pop()
+                self.parseTreeStack.pop()
                 self.code_gen.handle(arg, self.current_token)
             else:
                 if not self.same_terminal(self.current_token):
@@ -124,7 +125,7 @@ class Parser:
             nodes = []
             for arg in next_branch:
                 if isinstance(arg, ActionSymbols):
-                    nodes.append(None)
+                    nodes.append(Node(str(arg), parent=parent))
                 else:
                     nodes.append(self.make_node(arg, token_pack, parent))
             for arg, node in zip(next_branch[::-1], nodes[::-1]):
@@ -189,7 +190,7 @@ class ParseTable:
         (NonTerminal.B, ';'): -1,
         (NonTerminal.B, '='): ('=', NonTerminal.C),
         (NonTerminal.B, '['): ('[', NonTerminal.Expression, ']', '=', NonTerminal.C),
-        (NonTerminal.B, '('): ('(', NonTerminal.Arguments, ')'),
+        (NonTerminal.B, '('): ('(', ActionSymbols.FuncCallStart, NonTerminal.Arguments, ActionSymbols.FuncCallEnd2, ')'),
 
         (NonTerminal.C, ';'): -1,
         (NonTerminal.C, TokenType.ID): (NonTerminal.Expression, ActionSymbols.ASSIGN),

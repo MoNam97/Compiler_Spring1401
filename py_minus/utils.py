@@ -119,6 +119,7 @@ class ActionSymbols(Enum):
     FuncSaveArgs = 22
     FuncStoreRV = 23
     FuncJBack = 24
+    FuncCallEnd2 = 25
 
 
 class AddrCode(Enum):
