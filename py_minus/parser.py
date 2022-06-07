@@ -190,7 +190,8 @@ class ParseTable:
         (NonTerminal.B, ';'): -1,
         (NonTerminal.B, '='): ('=', NonTerminal.C),
         (NonTerminal.B, '['): ('[', NonTerminal.Expression, ']', '=', NonTerminal.C),
-        (NonTerminal.B, '('): ('(', ActionSymbols.FuncCallStart, NonTerminal.Arguments, ActionSymbols.FuncCallEnd2, ')'),
+        (NonTerminal.B, '('): (
+        '(', ActionSymbols.FuncCallStart, NonTerminal.Arguments, ActionSymbols.FuncCallEnd2, ')'),
 
         (NonTerminal.C, ';'): -1,
         (NonTerminal.C, TokenType.ID): (NonTerminal.Expression, ActionSymbols.ASSIGN),
@@ -266,8 +267,8 @@ class ParseTable:
         (NonTerminal.Expression_Prime, ':'): (),
         (NonTerminal.Expression_Prime, '=='): (),
         (NonTerminal.Expression_Prime, '<'): (),
-        (NonTerminal.Expression_Prime, '+'): ('+', NonTerminal.Term, NonTerminal.Expression_Prime, ActionSymbols.ADD),
-        (NonTerminal.Expression_Prime, '-'): ('-', NonTerminal.Term, NonTerminal.Expression_Prime, ActionSymbols.SUB),
+        (NonTerminal.Expression_Prime, '+'): ('+', NonTerminal.Term, ActionSymbols.ADD, NonTerminal.Expression_Prime),
+        (NonTerminal.Expression_Prime, '-'): ('-', NonTerminal.Term, ActionSymbols.SUB, NonTerminal.Expression_Prime),
 
         (NonTerminal.Term, ';'): -1,
         (NonTerminal.Term, ']'): -1,
@@ -290,7 +291,7 @@ class ParseTable:
         (NonTerminal.Term_Prime, '<'): (),
         (NonTerminal.Term_Prime, '+'): (),
         (NonTerminal.Term_Prime, '-'): (),
-        (NonTerminal.Term_Prime, '*'): ('*', NonTerminal.Factor, NonTerminal.Term_Prime, ActionSymbols.MULT),
+        (NonTerminal.Term_Prime, '*'): ('*', NonTerminal.Factor, ActionSymbols.MULT, NonTerminal.Term_Prime),
 
         (NonTerminal.Factor, ';'): -1,
         (NonTerminal.Factor, ']'): -1,
