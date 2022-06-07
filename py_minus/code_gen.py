@@ -30,8 +30,7 @@ class CodeGenerator:
         self.last_temp = 500
         self.last_variable = 100
         self.pb = [
-            f"(JP, 23, , )",
-            f"(JP, 23, , )"
+            f"(JP, 3, , )",
         ]
         self.initialize_output_function()
 
@@ -187,6 +186,8 @@ class CodeGenerator:
         self.pb.append(f"(JP, {self._while_start[-1]}, , )")
 
     def _handle_func_def(self, token_pack):
+        self.func_stack.append(len(self.pb))
+        self.pb.append("placeholder of jump to end of the func")
         ra = self._get_temp_address()
         rv = self._get_temp_address()
         self.func_stack.append(len(self.symbol_table.items))
@@ -214,6 +215,8 @@ class CodeGenerator:
         ra = self.symbol_table.items[func_idx].type.ra
         self.pb.append(f"(JP, @{ra}, , )")
         self.decrease_scope()
+        addr = self.func_stack.pop()
+        self.pb[addr] = f"(JP, {len(self.pb)}, , )"
 
     def _handle_func_call_start(self, _token_pack):
         self.func_stack.append(0)
@@ -311,8 +314,9 @@ class CodeGenerator:
         assert len(self.func_stack) == 0
         main_addr = self._find_addr('main')
         func_data = self._find_func_data(main_addr)
-        self.pb.append("(ASSIGN, #1, 100, )")
-        self.pb[0] = f"(ASSIGN, #{len(self.pb)}, {func_data.ra}, )"
-        self.pb[1] = f"(JP, {main_addr}, , )"
-        for idx, code in enumerate(self.pb):
+        pb = self.pb.copy()
+        pb.append(f"(ASSIGN, #{len(self.pb)+2}, {func_data.ra}, )")
+        pb.append(f"(JP, {main_addr}, , )")
+        pb.append("(ASSIGN, #1, 100, )")
+        for idx, code in enumerate(pb):
             print(f"{idx}\t{code}", file=file)
