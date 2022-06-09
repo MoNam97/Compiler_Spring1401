@@ -93,6 +93,7 @@ if __name__ == '__main__':
     # print(parser.syntaxError)
 
     code_gen.print()
+    print(code_gen.stack)
 
     write_ouptut(code_gen)
     write_parse_tree(parser.parseTree)

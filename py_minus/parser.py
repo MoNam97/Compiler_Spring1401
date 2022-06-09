@@ -318,7 +318,7 @@ class ParseTable:
         (NonTerminal.Power, '+'): (NonTerminal.Primary,),
         (NonTerminal.Power, '-'): (NonTerminal.Primary,),
         (NonTerminal.Power, '*'): (NonTerminal.Primary,),
-        (NonTerminal.Power, '**'): ('**', NonTerminal.Factor),
+        (NonTerminal.Power, '**'): ('**', NonTerminal.Factor, ActionSymbols.Power),
 
         (NonTerminal.Primary, ';'): (),
         (NonTerminal.Primary, '['): ('[', NonTerminal.Expression, ']', NonTerminal.Primary),

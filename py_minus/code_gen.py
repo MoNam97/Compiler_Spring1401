@@ -115,7 +115,7 @@ class CodeGenerator:
         self.pb.append("placeholder jump jfalse")
         self.increase_scope()
 
-    def _handle_JTrue(self, _token_pack):
+    def _handle_j_true(self, _token_pack):
         self.decrease_scope()
         i = self.if_stack.pop()
         cond = self.if_stack.pop()
@@ -150,6 +150,21 @@ class CodeGenerator:
 
     def _handle_mult(self, _token_pack):
         self._handle_arithmethic("MULT")
+
+    def _handle_power(self, _token_pack):
+        result = self._get_temp_address()
+        temp1 = self._get_temp_address()
+        temp2 = self._get_temp_address()
+        power = self.stack.pop()
+        number = self.stack.pop()
+        self.pb.append(f"(ASSIGN, #1, {result}, )")
+        self.pb.append(f"(JPF, {power}, {len(self.pb)+6}, )")
+        self.pb.append(f"(MULT, {result}, {number}, {temp1})")
+        self.pb.append(f"(ASSIGN, {temp1}, {result}, )")
+        self.pb.append(f"(SUB, {power}, #1, {temp2})")
+        self.pb.append(f"(ASSIGN, {temp2}, {power}, )")
+        self.pb.append(f"(JP, {len(self.pb)-5}, , )")
+        self.stack.append(result)
 
     def _handle_assign(self, _token_pack):
         operand1 = self.stack.pop()
@@ -267,11 +282,12 @@ class CodeGenerator:
             ActionSymbols.MULT: self._handle_mult,
             ActionSymbols.SUB: self._handle_sub,
             ActionSymbols.ADD: self._handle_add,
+            ActionSymbols.Power: self._handle_power,
             ActionSymbols.ASSIGN: self._handle_assign,
             ActionSymbols.SaveRelop: self._handle_saverelop,
             ActionSymbols.RelopAct: self._handle_relopact,
             ActionSymbols.JFalse: self._handle_j_false,
-            ActionSymbols.JTrue: self._handle_JTrue,
+            ActionSymbols.JTrue: self._handle_j_true,
             ActionSymbols.Endif: self._handle_Endif,
             ActionSymbols.JHere: self._handle_JHere,
 
@@ -315,7 +331,7 @@ class CodeGenerator:
         main_addr = self._find_addr('main')
         func_data = self._find_func_data(main_addr)
         pb = self.pb.copy()
-        pb.append(f"(ASSIGN, #{len(self.pb)+2}, {func_data.ra}, )")
+        pb.append(f"(ASSIGN, #{len(self.pb) + 2}, {func_data.ra}, )")
         pb.append(f"(JP, {main_addr}, , )")
         pb.append("(ASSIGN, #1, 100, )")
         for idx, code in enumerate(pb):
