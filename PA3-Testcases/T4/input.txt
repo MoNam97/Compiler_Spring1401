@@ -36,8 +36,6 @@ def isMultiplier(a,b):
         ;
     ;
 
-;
-
     step = i;
     i = i - abs(i);
     while (abs(i)<abs(a))
@@ -49,6 +47,7 @@ def isMultiplier(a,b):
         ;
     ;
     return flag;
+;
 
 
 def main():
