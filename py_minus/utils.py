@@ -90,6 +90,7 @@ class Char:
 
 class ActionSymbols(Enum):
     PID = 0
+    GID = 27
     PNUM = 1
     MULT = 2
     ADD = 3
@@ -121,6 +122,7 @@ class ActionSymbols(Enum):
     FuncStoreRV = 23
     FuncJBack = 24
     FuncCallEnd2 = 25
+    # last used number is 27
 
 
 class AddrCode(Enum):

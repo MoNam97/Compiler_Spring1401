@@ -81,6 +81,15 @@ class CodeGenerator:
         addr = self._find_addr(token_pack.lexim)
         self.stack.append(addr)
 
+    def _handle_gid(self, token_pack):
+        addr = self._get_var_address()
+        self.symbol_table.items.insert(0, SymbolTableItem(
+            lexim=token_pack.lexim,
+            addr=addr,
+            type=None,
+            scope=0
+        ))
+
     def _handle_pnum(self, token_pack):
         addr = self._get_temp_address()
         self.stack.append(addr)
@@ -158,12 +167,12 @@ class CodeGenerator:
         power = self.stack.pop()
         number = self.stack.pop()
         self.pb.append(f"(ASSIGN, #1, {result}, )")
-        self.pb.append(f"(JPF, {power}, {len(self.pb)+6}, )")
+        self.pb.append(f"(JPF, {power}, {len(self.pb) + 6}, )")
         self.pb.append(f"(MULT, {result}, {number}, {temp1})")
         self.pb.append(f"(ASSIGN, {temp1}, {result}, )")
         self.pb.append(f"(SUB, {power}, #1, {temp2})")
         self.pb.append(f"(ASSIGN, {temp2}, {power}, )")
-        self.pb.append(f"(JP, {len(self.pb)-5}, , )")
+        self.pb.append(f"(JP, {len(self.pb) - 5}, , )")
         self.stack.append(result)
 
     def _handle_assign(self, _token_pack):
@@ -278,6 +287,7 @@ class CodeGenerator:
     def handle(self, action_symbol, token_pack):
         handlers = {
             ActionSymbols.PID: self._handle_pid,
+            ActionSymbols.GID: self._handle_gid,
             ActionSymbols.PNUM: self._handle_pnum,
             ActionSymbols.MULT: self._handle_mult,
             ActionSymbols.SUB: self._handle_sub,

@@ -191,7 +191,7 @@ class ParseTable:
         (NonTerminal.B, '='): ('=', NonTerminal.C),
         (NonTerminal.B, '['): ('[', NonTerminal.Expression, ']', '=', NonTerminal.C),
         (NonTerminal.B, '('): (
-        '(', ActionSymbols.FuncCallStart, NonTerminal.Arguments, ActionSymbols.FuncCallEnd2, ')'),
+            '(', ActionSymbols.FuncCallStart, NonTerminal.Arguments, ActionSymbols.FuncCallEnd2, ')'),
 
         (NonTerminal.C, ';'): -1,
         (NonTerminal.C, TokenType.ID): (NonTerminal.Expression, ActionSymbols.ASSIGN),
@@ -208,7 +208,7 @@ class ParseTable:
         (NonTerminal.Return_Value, TokenType.NUM): (NonTerminal.Expression, ActionSymbols.FuncStoreRV),
 
         (NonTerminal.Global_stmt, ';'): -1,
-        (NonTerminal.Global_stmt, 'global'): ('global', TokenType.ID),
+        (NonTerminal.Global_stmt, 'global'): ('global', ActionSymbols.GID, TokenType.ID),
 
         (NonTerminal.Function_def, ';'): -1,
         (NonTerminal.Function_def, 'def'): (
