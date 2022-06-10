@@ -179,6 +179,18 @@ class CodeGenerator:
     def _handle_assign(self, _token_pack):
         operand1 = self.stack.pop()
         operand2 = self.stack.pop()
+
+        item = self.symbol_table.find_by_addr(operand2)
+        if item and isinstance(item.type, ListData):
+            addr = self._get_var_address()
+            self.symbol_table.items.append(SymbolTableItem(
+                lexim=item.lexim,
+                addr=addr,
+                type=None,
+                scope=self.scope
+            ))
+            operand2 = addr
+
         self.pb.append(f"(ASSIGN, {operand1}, {operand2}, )")
 
     def _handle_start_loop(self, _token_pack):
