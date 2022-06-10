@@ -327,25 +327,32 @@ class CodeGenerator:
         self.list_stack.pop()
 
     def _handle_list_offset(self, _token_pack):
-        temp1 = self._get_temp_address()
-        temp2 = self._get_temp_address()
-        exp_addr = self.stack.pop()
-        addr = self.stack.pop()
-        # TODO: Complex lists are ignored (i.e. [0, [0, 1], [1, 3], 1*4])
-        self.pb.append(f"(MULT, #{3 * INT_SIZE}, {exp_addr}, {temp1})")
-        self.pb.append(f"(ADD, {temp1}, {addr}, {temp2})")
+        temp1, temp2 = self._find_list_index()
         self.stack.append(f"@{temp2}")
 
     def _handle_list_offset2(self, _token_pack):
-        temp1 = self._get_temp_address()
-        temp2 = self._get_temp_address()
-        exp_addr = self.stack.pop()
-        addr = self.stack.pop()
-        # TODO: Complex lists are ignored (i.e. [0, [0, 1], [1, 3], 1*4])
-        self.pb.append(f"(MULT, #{3 * INT_SIZE}, {exp_addr}, {temp1})")
-        self.pb.append(f"(ADD, {temp1}, {addr}, {temp2})")
+        temp1, temp2 = self._find_list_index()
         self.pb.append(f"(ASSIGN, @{temp2}, {temp1}, )")
         self.stack.append(temp1)
+
+    def _find_list_index(self):
+        temp1 = self._get_temp_address()
+        temp2 = self._get_temp_address()
+        temp3 = self._get_temp_address()
+        exp_addr = self.stack.pop()
+        addr = self.stack.pop()
+        self.pb.append(f"(ASSIGN, {exp_addr}, {temp1}, )")
+        self.pb.append(f"(ASSIGN, {addr}, {temp2}, )")
+
+        i = len(self.pb)
+        self.pb.append(f"(JPF, {temp1}, {len(self.pb) + 6}, )")
+        self.pb.append(f"(SUB, {temp1}, #1, {temp3})")
+        self.pb.append(f"(ASSIGN, {temp3}, {temp1}, )")
+        self.pb.append(f"(ADD, {temp2}, #{INT_SIZE}, {temp3})")
+        self.pb.append(f"(ASSIGN, @{temp3}, {temp2}, )")
+        self.pb.append(f"(JP, {i}, , )")
+
+        return temp1, temp2
 
     def handle(self, action_symbol, token_pack):
         handlers = {
