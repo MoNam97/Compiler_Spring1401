@@ -190,7 +190,7 @@ class ParseTable:
         (NonTerminal.B, ';'): -1,
         (NonTerminal.B, '='): ('=', NonTerminal.C),
         (NonTerminal.B, '['): (
-            '[', ActionSymbols.LIST_TYPE, NonTerminal.Expression, ActionSymbols.LIST_OFFSET, ']',
+            '[', NonTerminal.Expression, ActionSymbols.LIST_OFFSET, ']',
             '=', NonTerminal.C),
         (NonTerminal.B, '('): (
             '(', ActionSymbols.FuncCallStart, NonTerminal.Arguments, ActionSymbols.FuncCallEnd2, ')'),

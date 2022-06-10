@@ -83,12 +83,13 @@ if __name__ == '__main__':
     recognized_tokens = []
     symbols = copy(KEYWORDS)
     prefix = ""
-    # prefix = "PA3-Testcases/T4/"
+    # prefix = "PA3-Testcases/T9/"
     # print("expected.txt".center(40, "-"))
     # with open(prefix + "expected.txt", "r") as f:
     #     print(''.join(f.readlines()))
     # print("out result".center(40, "-"))
     #
+
     scanner = Scanner(prefix + "input.txt", symbols)
     code_gen = CodeGenerator()
 
@@ -99,8 +100,7 @@ if __name__ == '__main__':
 
     # print(parser.syntaxError)
 
-    code_gen.print()
-    print(code_gen.stack)
+    # code_gen.print()
 
     write_ouptut(code_gen)
     write_parse_tree(parser.parseTree)

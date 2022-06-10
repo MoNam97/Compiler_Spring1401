@@ -296,10 +296,11 @@ class CodeGenerator:
         self.list_stack.append(symbol_item.type)
 
     def _handle_list_type2(self, _token_pack):
-        addr = self.stack.pop()
-        symbol_item = self.symbol_table.find_by_addr(addr=addr)
-        assert isinstance(symbol_item.type, ListData)
-        self.list_stack.append(symbol_item.type)
+        # addr = self.stack.pop()
+        # symbol_item = self.symbol_table.find_by_addr(addr=addr)
+        # assert isinstance(symbol_item.type, ListData)
+        # self.list_stack.append(symbol_item.type)
+        pass
 
     def _handle_list_assign(self, _token_pack):
         exp_addr = self.stack.pop()
@@ -313,21 +314,28 @@ class CodeGenerator:
         self.list_stack.pop()
 
     def _handle_list_offset(self, _token_pack):
-        temp1, temp2 = self._list_offset()
-        self.stack.append(f"@{temp2}")
-
-    def _list_offset(self):
         temp1 = self._get_temp_address()
         temp2 = self._get_temp_address()
         exp_addr = self.stack.pop()
-        list_data = self.list_stack.pop()
+        addr = self.stack.pop()
         # TODO: Complex lists are ignored (i.e. [0, [0, 1], [1, 3], 1*4])
         self.pb.append(f"(MULT, #{3 * INT_SIZE}, {exp_addr}, {temp1})")
-        self.pb.append(f"(ADD, {temp1}, #{list_data.first}, {temp2})")
-        return temp1, temp2
+        self.pb.append(f"(ADD, {temp1}, {addr}, {temp2})")
+        self.pb.append(f"(PRINT, #222222, , )")
+        self.pb.append(f"(PRINT, {temp2}, , )")
+        self.stack.append(f"@{temp2}")
 
     def _handle_list_offset2(self, _token_pack):
-        temp1, temp2 = self._list_offset()
+        temp1 = self._get_temp_address()
+        temp2 = self._get_temp_address()
+        exp_addr = self.stack.pop()
+        addr = self.stack.pop()
+        # TODO: Complex lists are ignored (i.e. [0, [0, 1], [1, 3], 1*4])
+        self.pb.append(f"(MULT, #{3 * INT_SIZE}, {exp_addr}, {temp1})")
+        self.pb.append(f"(ADD, {temp1}, {addr}, {temp2})")
+        self.pb.append(f"(PRINT, #1111111, , )")
+        self.pb.append(f"(PRINT, {temp2}, , )")
+        self.pb.append(f"(PRINT, 104, , )")
         self.pb.append(f"(ASSIGN, @{temp2}, {temp1}, )")
         self.stack.append(temp1)
 
