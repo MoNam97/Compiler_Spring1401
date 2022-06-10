@@ -78,18 +78,19 @@ class CodeGenerator:
         ))
         return addr
 
+    def _reverse_find_addr(self, name):
+        for item in self.symbol_table.items:
+            if name == item.lexim:
+                return item
+        return None
+
     def _handle_pid(self, token_pack):
         addr = self._find_addr(token_pack.lexim)
         self.stack.append(addr)
 
     def _handle_gid(self, token_pack):
-        addr = self._get_var_address()
-        self.symbol_table.items.insert(0, SymbolTableItem(
-            lexim=token_pack.lexim,
-            addr=addr,
-            type=None,
-            scope=0
-        ))
+        item = self._reverse_find_addr(token_pack.lexim)
+        self.symbol_table.items.append(item)
 
     def _handle_pnum(self, token_pack):
         addr = self._get_temp_address()
