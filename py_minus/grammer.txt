@@ -12,12 +12,12 @@ Compound_stmt -> Function_def
 Compound_stmt -> If_stmt
 Compound_stmt -> Iteration_stmt
 Assignment_Call -> #PID ID B
-B -> = C #ASSIGN
-B -> [ Expression ] = C #ASSIGN
+B -> = C
+B -> #LIST_TYPE [ Expression #LIST_OFFSET ] = C
 B -> ( Arguments )
-C -> Expression
-C -> [ Expression List_Rest ]
-List_Rest -> , Expression List_Rest	
+C -> Expression #ASSIGN
+C -> #LIST_TYPE [ Expression #LIST_ASSIGN List_Rest ] #LIST_END_ASSIGN
+List_Rest -> , Expression #LIST_ASSIGN List_Rest
 List_Rest -> ''	
 Return_stmt -> return Return_Value #FuncJBack
 Return_Value -> Expression #FuncStoreRV
@@ -45,7 +45,7 @@ Term_Prime -> ''
 Factor -> Atom Power
 Power -> ** Factor #Power
 Power -> Primary
-Primary -> [ Expression ] #OffSet? Primary
+Primary -> [#LIST_TYPE Expression #LIST_OFFSET] Primary
 Primary -> (#FuncCallStart Arguments  #FuncCallEnd) Primary
 Primary -> ''
 Arguments -> Expression #FuncSaveArgs Arguments_Prime

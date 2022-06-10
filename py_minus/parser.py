@@ -189,17 +189,21 @@ class ParseTable:
 
         (NonTerminal.B, ';'): -1,
         (NonTerminal.B, '='): ('=', NonTerminal.C),
-        (NonTerminal.B, '['): ('[', NonTerminal.Expression, ']', '=', NonTerminal.C),
+        (NonTerminal.B, '['): (
+            '[', ActionSymbols.LIST_TYPE, NonTerminal.Expression, ActionSymbols.LIST_OFFSET, ']',
+            '=', NonTerminal.C),
         (NonTerminal.B, '('): (
             '(', ActionSymbols.FuncCallStart, NonTerminal.Arguments, ActionSymbols.FuncCallEnd2, ')'),
 
         (NonTerminal.C, ';'): -1,
         (NonTerminal.C, TokenType.ID): (NonTerminal.Expression, ActionSymbols.ASSIGN),
         (NonTerminal.C, TokenType.NUM): (NonTerminal.Expression, ActionSymbols.ASSIGN),
-        (NonTerminal.C, '['): ('[', NonTerminal.Expression, NonTerminal.List_Rest, ']'),
+        (NonTerminal.C, '['): (ActionSymbols.LIST_TYPE,
+                               '[', NonTerminal.Expression, ActionSymbols.LIST_ASSIGN, NonTerminal.List_Rest, ']',
+                               ActionSymbols.LIST_END_ASSIGN),
 
         (NonTerminal.List_Rest, ']'): (),
-        (NonTerminal.List_Rest, ','): (',', NonTerminal.Expression, NonTerminal.List_Rest),
+        (NonTerminal.List_Rest, ','): (',', NonTerminal.Expression, ActionSymbols.LIST_ASSIGN, NonTerminal.List_Rest),
 
         (NonTerminal.Return_stmt, ';'): -1,
         (NonTerminal.Return_stmt, 'return'): ('return', NonTerminal.Return_Value, ActionSymbols.FuncJBack),
@@ -321,7 +325,8 @@ class ParseTable:
         (NonTerminal.Power, '**'): ('**', NonTerminal.Factor, ActionSymbols.Power),
 
         (NonTerminal.Primary, ';'): (),
-        (NonTerminal.Primary, '['): ('[', NonTerminal.Expression, ']', NonTerminal.Primary),
+        (NonTerminal.Primary, '['): (ActionSymbols.LIST_TYPE2,
+                                     '[', NonTerminal.Expression, ActionSymbols.LIST_OFFSET2, ']', NonTerminal.Primary),
         (NonTerminal.Primary, ']'): (),
         (NonTerminal.Primary, '('): ('(', ActionSymbols.FuncCallStart,
                                      NonTerminal.Arguments,

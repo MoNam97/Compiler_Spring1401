@@ -1,17 +1,17 @@
 import sys
 from collections import deque
 
-from py_minus.utils import ActionSymbols, SymbolTable, SymbolTableItem, FunctionData
+from py_minus.utils import ActionSymbols, SymbolTable, SymbolTableItem, FunctionData, ListData
 
 INT_SIZE = 4
 
 
-# TODO: Consider if and return confilicts
 
 class CodeGenerator:
     stack = None
     if_stack = None
     func_stack = None
+    list_stack = None
     _while_start = None
     _while_cond_addr = None
     _while_cond_line = None
@@ -24,6 +24,7 @@ class CodeGenerator:
         self.stack = deque()
         self.if_stack = deque()
         self.func_stack = deque()
+        self.list_stack = deque()
         self._while_start = deque()
         self._while_cond_addr = deque()
         self._while_cond_line = deque()
@@ -276,13 +277,58 @@ class CodeGenerator:
         self.pb.append(f"(ASSIGN, {addr}, {self.symbol_table.items[func_idx].type.rv}, )")
 
     def _find_func_data(self, func_addr):
-        func_data = None
-        for item in self.symbol_table.items[::-1]:
-            if func_addr == item.addr:
-                func_data = item.type
+        item = self.symbol_table.find_by_addr(func_addr)
+        assert item is not None
+        func_data = item.type
         assert func_data is not None
         assert isinstance(func_data, FunctionData)
         return func_data
+
+    def _handle_list_type(self, _token_pack):
+        addr = self.stack.pop()
+        symbol_item = self.symbol_table.find_by_addr(addr=addr)
+        if symbol_item.type is None:
+            # TODO: Int and temporary None could be misused here
+            symbol_item.type = ListData(self._get_temp_address(), self._get_temp_address())
+            assert isinstance(symbol_item.type, ListData)
+            self.pb.append(f"(ASSIGN, #{symbol_item.type.first}, {addr}, )")
+        self.list_stack.append(symbol_item.type)
+
+    def _handle_list_type2(self, _token_pack):
+        addr = self.stack.pop()
+        symbol_item = self.symbol_table.find_by_addr(addr=addr)
+        assert isinstance(symbol_item.type, ListData)
+        self.list_stack.append(symbol_item.type)
+
+    def _handle_list_assign(self, _token_pack):
+        exp_addr = self.stack.pop()
+        list_data = self.list_stack.pop()
+        new_list_data = ListData(self._get_temp_address(), self._get_temp_address())
+        self.pb.append(f"(ASSIGN, {exp_addr}, {list_data.first}, )")
+        self.pb.append(f"(ASSIGN, #{new_list_data.first}, {list_data.rest}, )")
+        self.list_stack.append(new_list_data)
+
+    def _handle_list_end_assign(self, _token_pack):
+        self.list_stack.pop()
+
+    def _handle_list_offset(self, _token_pack):
+        temp1, temp2 = self._list_offset()
+        self.stack.append(f"@{temp2}")
+
+    def _list_offset(self):
+        temp1 = self._get_temp_address()
+        temp2 = self._get_temp_address()
+        exp_addr = self.stack.pop()
+        list_data = self.list_stack.pop()
+        # TODO: Complex lists are ignored (i.e. [0, [0, 1], [1, 3], 1*4])
+        self.pb.append(f"(MULT, #{3 * INT_SIZE}, {exp_addr}, {temp1})")
+        self.pb.append(f"(ADD, {temp1}, #{list_data.first}, {temp2})")
+        return temp1, temp2
+
+    def _handle_list_offset2(self, _token_pack):
+        temp1, temp2 = self._list_offset()
+        self.pb.append(f"(ASSIGN, @{temp2}, {temp1}, )")
+        self.stack.append(temp1)
 
     def handle(self, action_symbol, token_pack):
         handlers = {
@@ -316,6 +362,13 @@ class CodeGenerator:
             ActionSymbols.FuncSaveArgs: self._handle_func_save_args,
             ActionSymbols.FuncStoreRV: self._handle_func_store_rv,
             ActionSymbols.FuncJBack: self._handle_func_j_back,
+
+            ActionSymbols.LIST_TYPE: self._handle_list_type,
+            ActionSymbols.LIST_TYPE2: self._handle_list_type2,
+            ActionSymbols.LIST_OFFSET: self._handle_list_offset,
+            ActionSymbols.LIST_OFFSET2: self._handle_list_offset2,
+            ActionSymbols.LIST_ASSIGN: self._handle_list_assign,
+            ActionSymbols.LIST_END_ASSIGN: self._handle_list_end_assign,
         }
         if action_symbol not in handlers:
             print(f"Error: Unexpected actionsymbol {action_symbol}")

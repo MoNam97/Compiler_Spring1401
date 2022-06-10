@@ -122,7 +122,16 @@ class ActionSymbols(Enum):
     FuncStoreRV = 23
     FuncJBack = 24
     FuncCallEnd2 = 25
-    # last used number is 27
+
+    # List statements:
+    LIST_TYPE = 28
+    LIST_OFFSET = 29
+    LIST_ASSIGN = 30
+    LIST_END_ASSIGN = 31
+    LIST_TYPE2 = 32
+    LIST_OFFSET2 = 33
+
+    # last used number is 30
 
 
 class AddrCode(Enum):
@@ -141,7 +150,8 @@ class TokenPack:
 
 @dataclass
 class ListData:
-    pass
+    first: int
+    rest: int
 
 
 @dataclass
@@ -163,3 +173,9 @@ class SymbolTableItem:
 @dataclass
 class SymbolTable:
     items: List[SymbolTableItem]
+
+    def find_by_addr(self, addr):
+        for item in self.items[::-1]:
+            if item.addr == addr:
+                return item
+        return None

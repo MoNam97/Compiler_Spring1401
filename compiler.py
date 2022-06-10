@@ -82,7 +82,14 @@ def write_ouptut(gen):
 if __name__ == '__main__':
     recognized_tokens = []
     symbols = copy(KEYWORDS)
-    scanner = Scanner("input.txt", symbols)
+    prefix = ""
+    # prefix = "PA3-Testcases/T4/"
+    # print("expected.txt".center(40, "-"))
+    # with open(prefix + "expected.txt", "r") as f:
+    #     print(''.join(f.readlines()))
+    # print("out result".center(40, "-"))
+    #
+    scanner = Scanner(prefix + "input.txt", symbols)
     code_gen = CodeGenerator()
 
     parser = Parser(scanner, code_gen)
