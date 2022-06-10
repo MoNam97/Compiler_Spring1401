@@ -321,8 +321,6 @@ class CodeGenerator:
         # TODO: Complex lists are ignored (i.e. [0, [0, 1], [1, 3], 1*4])
         self.pb.append(f"(MULT, #{3 * INT_SIZE}, {exp_addr}, {temp1})")
         self.pb.append(f"(ADD, {temp1}, {addr}, {temp2})")
-        self.pb.append(f"(PRINT, #222222, , )")
-        self.pb.append(f"(PRINT, {temp2}, , )")
         self.stack.append(f"@{temp2}")
 
     def _handle_list_offset2(self, _token_pack):
@@ -333,9 +331,6 @@ class CodeGenerator:
         # TODO: Complex lists are ignored (i.e. [0, [0, 1], [1, 3], 1*4])
         self.pb.append(f"(MULT, #{3 * INT_SIZE}, {exp_addr}, {temp1})")
         self.pb.append(f"(ADD, {temp1}, {addr}, {temp2})")
-        self.pb.append(f"(PRINT, #1111111, , )")
-        self.pb.append(f"(PRINT, {temp2}, , )")
-        self.pb.append(f"(PRINT, 104, , )")
         self.pb.append(f"(ASSIGN, @{temp2}, {temp1}, )")
         self.stack.append(temp1)
 
