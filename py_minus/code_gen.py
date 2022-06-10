@@ -6,7 +6,6 @@ from py_minus.utils import ActionSymbols, SymbolTable, SymbolTableItem, Function
 INT_SIZE = 4
 
 
-
 class CodeGenerator:
     stack = None
     if_stack = None
@@ -251,10 +250,12 @@ class CodeGenerator:
         func_addr = self.stack.pop()
         self.func_stack.pop()
         func_data = self._find_func_data(func_addr)
-        if store_result:
-            self.stack.append(func_data.rv)
         self.pb.append(f"(ASSIGN, #{len(self.pb) + 2}, {func_data.ra}, )")
         self.pb.append(f"(JP, {func_data.addr}, , )")
+        if store_result:
+            temp_addr = self._get_temp_address()
+            self.stack.append(temp_addr)
+            self.pb.append(f"(ASSIGN, {func_data.rv}, {temp_addr}, )")
 
     def _handle_func_call_end2(self, _token_pack):
         self._handle_func_call_end(_token_pack, store_result=False)
