@@ -321,6 +321,12 @@ class CodeGenerator:
 
         if func_data is None:
             self.semantic_errors.append(MismatchedArgumentsError(func_name, token_pack.lineno))
+            if store_result:
+                temp_addr = self._get_temp_address()
+                if self.is_func_void(func_name):
+                    self.semantic_errors.append(VoidOperandError(token_pack.lineno))
+                self.stack.append(temp_addr)
+            return
         while args_count > 0:
             self.pb.append(f"(ASSIGN, {self.func_args_stack.pop()}, {func_data.args[args_count - 1]}, )")
             args_count -= 1
@@ -335,7 +341,7 @@ class CodeGenerator:
             self.pb.append(f"(ASSIGN, {func_data.rv}, {temp_addr}, )")
 
     def find_func(self, args_count, func_name):
-        for item in self.symbol_table.items[::-1]:
+        for item in self.symbol_table.items:
             if (
                     item.lexim == func_name
                     and item.type
@@ -533,3 +539,11 @@ class CodeGenerator:
             print('The input program is semantically correct.', file=f)
         for error in self.semantic_errors:
             print(error.message(), file=f)
+
+    def is_func_void(self, func_name):
+        for item in self.symbol_table.items:
+            if item.lexim == func_name:
+                assert item.type is not None
+                assert isinstance(item.type, FunctionData)
+                return True if item.type.rv is None else False
+        return None
