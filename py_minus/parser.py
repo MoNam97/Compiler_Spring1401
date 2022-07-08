@@ -363,6 +363,6 @@ class ParseTable:
         (NonTerminal.Atom, '-'): -1,
         (NonTerminal.Atom, '*'): -1,
         (NonTerminal.Atom, '**'): -1,
-        (NonTerminal.Atom, TokenType.ID): (ActionSymbols.PID, TokenType.ID,),
+        (NonTerminal.Atom, TokenType.ID): (ActionSymbols.PID2, TokenType.ID,),
         (NonTerminal.Atom, TokenType.NUM): (ActionSymbols.PNUM, TokenType.NUM,)
     }

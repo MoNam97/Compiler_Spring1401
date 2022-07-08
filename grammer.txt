@@ -52,5 +52,5 @@ Arguments -> Expression #FuncSaveArgs Arguments_Prime
 Arguments -> ''
 Arguments_Prime -> , Expression #FuncSaveArgs  Arguments_Prime
 Arguments_Prime -> ''
-Atom -> #PID ID
+Atom -> #PID2 ID
 Atom -> #PNUM NUM

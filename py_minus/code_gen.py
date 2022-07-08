@@ -1,6 +1,7 @@
 import sys
 from collections import deque
 
+from py_minus.semantic_errors import UndefinedVariableError
 from py_minus.utils import ActionSymbols, SymbolTable, SymbolTableItem, FunctionData, ListData
 
 INT_SIZE = 4
@@ -33,6 +34,7 @@ class CodeGenerator:
             f"(JP, 3, , )",
         ]
         self.initialize_output_function()
+        self.semantic_errors = []
 
     def initialize_output_function(self):
         ra = self._get_temp_address()
@@ -65,9 +67,9 @@ class CodeGenerator:
         return self.last_variable - INT_SIZE
 
     def _find_addr(self, name):
-        for item in self.symbol_table.items[::-1]:
-            if name == item.lexim:
-                return item.addr
+        item = self.symbol_table.find_by_lexim(name)
+        if item:
+            return item.addr
         addr = self._get_var_address()
         self.symbol_table.items.append(SymbolTableItem(
             lexim=name,
@@ -85,6 +87,15 @@ class CodeGenerator:
 
     def _handle_pid(self, token_pack):
         addr = self._find_addr(token_pack.lexim)
+        self.stack.append(addr)
+
+    def _handle_pid2(self, token_pack):
+        item = self.symbol_table.find_by_lexim(token_pack.lexim)
+        if item is None:
+            self.semantic_errors.append(UndefinedVariableError(token_pack.lexim))
+            addr = self._get_temp_address()
+        else:
+            addr = item.addr
         self.stack.append(addr)
 
     def _handle_gid(self, token_pack):
@@ -357,6 +368,7 @@ class CodeGenerator:
     def handle(self, action_symbol, token_pack):
         handlers = {
             ActionSymbols.PID: self._handle_pid,
+            ActionSymbols.PID2: self._handle_pid2,
             ActionSymbols.GID: self._handle_gid,
             ActionSymbols.PNUM: self._handle_pnum,
             ActionSymbols.MULT: self._handle_mult,
@@ -423,3 +435,9 @@ class CodeGenerator:
         pb.append("(ASSIGN, #1, 100, )")
         for idx, code in enumerate(pb):
             print(f"{idx}\t{code}", file=file)
+
+    def print_semantic_errors(self, f):
+        if len(self.semantic_errors) == 0:
+            print('The input program is semantically correct.', file=f)
+        for error in self.semantic_errors:
+            print(error.message(), file=f)

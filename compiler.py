@@ -1,6 +1,6 @@
 # Danial Erfanian - 97110155
 # Mohamad Namdar  - 97106302
-
+import sys
 from copy import copy
 
 from anytree import RenderTree
@@ -79,6 +79,11 @@ def write_ouptut(gen):
         gen.print(f)
 
 
+def write_semantic_errors(gen):
+    with open("semantic_errors.txt", "w+") as f:
+        gen.print_semantic_errors(f)
+
+
 if __name__ == '__main__':
     recognized_tokens = []
     symbols = copy(KEYWORDS)
@@ -89,6 +94,8 @@ if __name__ == '__main__':
     #     print(''.join(f.readlines()))
     # print("out result".center(40, "-"))
     #
+    # with open(prefix + "input.txt", "r") as f:
+    #     assert "recursive" not in f.readline()
 
     scanner = Scanner(prefix + "input.txt", symbols)
     code_gen = CodeGenerator()
@@ -101,7 +108,9 @@ if __name__ == '__main__':
     # print(parser.syntaxError)
 
     # code_gen.print()
+    code_gen.print_semantic_errors(sys.stdout)
 
+    write_semantic_errors(code_gen)
     write_ouptut(code_gen)
     write_parse_tree(parser.parseTree)
     write_syntax_errors(parser.syntaxError)

@@ -665,4 +665,5 @@ input.txt
 output.txt
 parse_tree.txt
 syntax_errors.txt
+semantic_errors.txt
 *.zip

@@ -90,6 +90,7 @@ class Char:
 
 class ActionSymbols(Enum):
     PID = 0
+    PID2 = 34
     GID = 27
     PNUM = 1
     MULT = 2
@@ -131,7 +132,7 @@ class ActionSymbols(Enum):
     LIST_TYPE2 = 32
     LIST_OFFSET2 = 33
 
-    # last used number is 30
+    # last used number is 34
 
 
 class AddrCode(Enum):
@@ -177,5 +178,11 @@ class SymbolTable:
     def find_by_addr(self, addr):
         for item in self.items[::-1]:
             if item.addr == addr:
+                return item
+        return None
+
+    def find_by_lexim(self, name):
+        for item in self.items[::-1]:
+            if name == item.lexim:
                 return item
         return None
