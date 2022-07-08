@@ -8,6 +8,7 @@ from py_minus.semantic_errors import (
     MismatchedArgumentsError,
     VoidOperandError,
     MainNotFoundError,
+    FunctionOverloadError,
 )
 from py_minus.utils import ActionSymbols, SymbolTable, SymbolTableItem, FunctionData, ListData
 
@@ -32,6 +33,7 @@ class CodeGenerator:
         self.stack = deque()
         self.if_stack = deque()
         self.func_stack = deque()
+        self.func_args_stack = deque()
         self.list_stack = deque()
         self._while_start = deque()
         self._while_cond_addr = deque()
@@ -314,9 +316,15 @@ class CodeGenerator:
                 self.stack.append(temp_addr)
             # Function wasn't defined so we don't need JP
             return
-        func_data = self._find_func_data(func_addr)
-        if len(func_data.args) != args_count:
-            self.semantic_errors.append(MismatchedArgumentsError(func_data.name, token_pack.lineno))
+        func_name = self._find_func_data(func_addr).name
+        func_data = self.find_func(args_count, func_name)
+
+        if func_data is None:
+            self.semantic_errors.append(MismatchedArgumentsError(func_name, token_pack.lineno))
+        while args_count > 0:
+            self.pb.append(f"(ASSIGN, {self.func_args_stack.pop()}, {func_data.args[args_count - 1]}, )")
+            args_count -= 1
+
         self.pb.append(f"(ASSIGN, #{len(self.pb) + 2}, {func_data.ra}, )")
         self.pb.append(f"(JP, {func_data.addr}, , )")
         if store_result:
@@ -326,19 +334,27 @@ class CodeGenerator:
                 self.semantic_errors.append(VoidOperandError(token_pack.lineno))
             self.pb.append(f"(ASSIGN, {func_data.rv}, {temp_addr}, )")
 
+    def find_func(self, args_count, func_name):
+        for item in self.symbol_table.items[::-1]:
+            if (
+                    item.lexim == func_name
+                    and item.type
+                    and isinstance(item.type, FunctionData)
+                    and len(item.type.args) == args_count
+            ):
+                return item.type
+        return None
+
     def _handle_func_call_end2(self, _token_pack):
         self._handle_func_call_end(_token_pack, store_result=False)
 
     def _handle_func_save_args(self, token_pack):
         arg_addr = self.stack.pop()
-        idx = self.func_stack[-1]
         func_addr = self.stack[-1]
         if func_addr == UNDEFINED_FUNCTION:
             # Function wasn't defined so we don't need to store arguments
             return
-        func_data = self._find_func_data(func_addr)
-        if idx < len(func_data.args):
-            self.pb.append(f"(ASSIGN, {arg_addr}, {func_data.args[idx]}, )")
+        self.func_args_stack.append(arg_addr)
         self.func_stack[-1] += 1
 
     def _handle_func_j_back(self, _token_pack):
@@ -418,6 +434,19 @@ class CodeGenerator:
 
         return temp1, temp2
 
+    def _handle_consider_overload(self, token_pack):
+        func_idx = self.func_stack[-1]
+        current_item = self.symbol_table.items[func_idx]
+        for item in self.symbol_table.items[:func_idx]:
+            if (
+                    item.lexim == current_item.lexim
+                    and item.type
+                    and isinstance(item.type, FunctionData)
+                    and len(item.type.args) == len(current_item.type.args)
+            ):
+                self.semantic_errors.append(FunctionOverloadError(current_item.lexim, token_pack.lineno))
+                break
+
     def _handle_program_done(self, token_pack):
         item = self.symbol_table.find_by_lexim('main')
         if item is None:
@@ -470,6 +499,7 @@ class CodeGenerator:
             ActionSymbols.LIST_ASSIGN: self._handle_list_assign,
             ActionSymbols.LIST_END_ASSIGN: self._handle_list_end_assign,
             ActionSymbols.PROGRAM_DONE: self._handle_program_done,
+            ActionSymbols.CONSIDER_OVERLOAD: self._handle_consider_overload,
         }
         if action_symbol not in handlers:
             print(f"Error: Unexpected actionsymbol {action_symbol}")

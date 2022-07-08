@@ -217,7 +217,7 @@ class ParseTable:
         (NonTerminal.Function_def, ';'): -1,
         (NonTerminal.Function_def, 'def'): (
             'def', ActionSymbols.FuncDef, TokenType.ID,
-            '(', NonTerminal.Params, ')', ':',
+            '(', NonTerminal.Params, ')', ActionSymbols.CONSIDER_OVERLOAD, ':',
             NonTerminal.Statements, ActionSymbols.FuncEnd),
 
         (NonTerminal.Params, ')'): (),

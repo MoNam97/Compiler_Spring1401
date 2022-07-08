@@ -134,7 +134,8 @@ class ActionSymbols(Enum):
     LIST_OFFSET2 = 33
 
     PROGRAM_DONE = 35
-    # last used number is 36
+    CONSIDER_OVERLOAD = 37
+    # last used number is 37
 
 
 class AddrCode(Enum):

@@ -57,3 +57,13 @@ class MainNotFoundError(BaseSemanticError):
 
     def message(self) -> str:
         return f"#{self.lineno + 1} : Semantic Error! main function not found."
+
+
+class FunctionOverloadError(BaseSemanticError):
+    def __init__(self, lexim, lineno):
+        self.lexim = lexim
+        self.lineno = lineno
+
+    def message(self) -> str:
+        return f"#{self.lineno + 1} : Semantic Error!" \
+               f" Function '{self.lexim}' has already been defined with this number of arguments."
