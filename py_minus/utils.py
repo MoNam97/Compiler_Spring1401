@@ -158,6 +158,7 @@ class ListData:
 
 @dataclass
 class FunctionData:
+    name: str
     addr: int
     ra: int
     rv: Optional[int]

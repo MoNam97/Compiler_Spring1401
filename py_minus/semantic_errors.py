@@ -13,7 +13,18 @@ class UndefinedVariableError(BaseSemanticError):
         self.lineno = lineno
 
     def message(self) -> str:
-        return f"#{self.lineno + 1} : Semantic Error! '{self.lexim}' is not defined appropriately."
+        return f"#{self.lineno + 1} : Semantic Error! " \
+               f"'{self.lexim}' is not defined appropriately."
+
+
+class MismatchedArgumentsError(BaseSemanticError):
+    def __init__(self, func_lexim, lineno):
+        self.func_lexim = func_lexim
+        self.lineno = lineno
+
+    def message(self) -> str:
+        return f"#{self.lineno + 1} : Semantic Error! " \
+               f"Mismatch in numbers of arguments of '{self.func_lexim}'."
 
 
 class UnmatchedContinueError(BaseSemanticError):

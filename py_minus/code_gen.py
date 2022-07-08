@@ -5,6 +5,7 @@ from py_minus.semantic_errors import (
     UnmatchedWhileError,
     UnmatchedContinueError,
     UndefinedVariableError,
+    MismatchedArgumentsError,
     VoidOperandError,
     MainNotFoundError,
 )
@@ -53,6 +54,7 @@ class CodeGenerator:
                 lexim='output',
                 addr=len(self.pb),
                 type=FunctionData(
+                    name='output',
                     addr=len(self.pb),
                     ra=ra,
                     rv=rv,
@@ -257,6 +259,7 @@ class CodeGenerator:
                 lexim=token_pack.lexim,
                 addr=len(self.pb),
                 type=FunctionData(
+                    name=token_pack.lexim,
                     addr=len(self.pb),
                     ra=ra,
                     rv=None,
@@ -292,7 +295,7 @@ class CodeGenerator:
 
     def _handle_func_call_end(self, token_pack, store_result=True):
         func_addr = self.stack.pop()
-        self.func_stack.pop()
+        args_count = self.func_stack.pop()
         if func_addr == UNDEFINED_FUNCTION:
             if store_result:
                 temp_addr = self._get_temp_address()
@@ -300,6 +303,8 @@ class CodeGenerator:
             # Function wasn't defined so we don't need JP
             return
         func_data = self._find_func_data(func_addr)
+        if len(func_data.args) != args_count:
+            self.semantic_errors.append(MismatchedArgumentsError(func_data.name, token_pack.lineno))
         self.pb.append(f"(ASSIGN, #{len(self.pb) + 2}, {func_data.ra}, )")
         self.pb.append(f"(JP, {func_data.addr}, , )")
         if store_result:
@@ -312,7 +317,7 @@ class CodeGenerator:
     def _handle_func_call_end2(self, _token_pack):
         self._handle_func_call_end(_token_pack, store_result=False)
 
-    def _handle_func_save_args(self, _token_pack):
+    def _handle_func_save_args(self, token_pack):
         arg_addr = self.stack.pop()
         idx = self.func_stack[-1]
         func_addr = self.stack[-1]
@@ -320,7 +325,8 @@ class CodeGenerator:
             # Function wasn't defined so we don't need to store arguments
             return
         func_data = self._find_func_data(func_addr)
-        self.pb.append(f"(ASSIGN, {arg_addr}, {func_data.args[idx]}, )")
+        if idx < len(func_data.args):
+            self.pb.append(f"(ASSIGN, {arg_addr}, {func_data.args[idx]}, )")
         self.func_stack[-1] += 1
 
     def _handle_func_j_back(self, _token_pack):
@@ -336,7 +342,7 @@ class CodeGenerator:
             func_type.rv = self._get_temp_address()
         self.pb.append(f"(ASSIGN, {addr}, {func_type.rv}, )")
 
-    def _find_func_data(self, func_addr):
+    def _find_func_data(self, func_addr) -> FunctionData:
         item = self.symbol_table.find_by_addr(func_addr)
         assert item is not None
         func_data = item.type
