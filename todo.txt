@@ -1,0 +1,2 @@
+undefined(100)
+undefined[100]

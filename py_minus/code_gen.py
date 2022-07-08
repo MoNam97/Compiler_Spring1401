@@ -4,7 +4,8 @@ from collections import deque
 from py_minus.semantic_errors import (
     UnmatchedWhileError,
     UnmatchedContinueError,
-    UndefinedVariableError
+    UndefinedVariableError,
+    VoidOperandError,
 )
 from py_minus.utils import ActionSymbols, SymbolTable, SymbolTableItem, FunctionData, ListData
 
@@ -249,7 +250,6 @@ class CodeGenerator:
         self.func_stack.append(len(self.pb))
         self.pb.append("placeholder of jump to end of the func")
         ra = self._get_temp_address()
-        rv = self._get_temp_address()
         self.func_stack.append(len(self.symbol_table.items))
         self.symbol_table.items.append(
             SymbolTableItem(
@@ -258,7 +258,7 @@ class CodeGenerator:
                 type=FunctionData(
                     addr=len(self.pb),
                     ra=ra,
-                    rv=rv,
+                    rv=None,
                     args=[]
                 ),
                 scope=self.scope
@@ -289,7 +289,7 @@ class CodeGenerator:
             self.stack[-1] = UNDEFINED_FUNCTION
         self.func_stack.append(0)
 
-    def _handle_func_call_end(self, _token_pack, store_result=True):
+    def _handle_func_call_end(self, token_pack, store_result=True):
         func_addr = self.stack.pop()
         self.func_stack.pop()
         if func_addr == UNDEFINED_FUNCTION:
@@ -304,6 +304,8 @@ class CodeGenerator:
         if store_result:
             temp_addr = self._get_temp_address()
             self.stack.append(temp_addr)
+            if func_data.rv is None:
+                self.semantic_errors.append(VoidOperandError(token_pack.lineno))
             self.pb.append(f"(ASSIGN, {func_data.rv}, {temp_addr}, )")
 
     def _handle_func_call_end2(self, _token_pack):
@@ -328,7 +330,10 @@ class CodeGenerator:
     def _handle_func_store_rv(self, _token_pack):
         addr = self.stack.pop()
         func_idx = self.func_stack[-1]
-        self.pb.append(f"(ASSIGN, {addr}, {self.symbol_table.items[func_idx].type.rv}, )")
+        func_type = self.symbol_table.items[func_idx].type
+        if func_type.rv is None:
+            func_type.rv = self._get_temp_address()
+        self.pb.append(f"(ASSIGN, {addr}, {func_type.rv}, )")
 
     def _find_func_data(self, func_addr):
         item = self.symbol_table.find_by_addr(func_addr)

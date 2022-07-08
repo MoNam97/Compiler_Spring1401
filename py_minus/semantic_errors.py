@@ -30,3 +30,11 @@ class UnmatchedWhileError(BaseSemanticError):
 
     def message(self) -> str:
         return f"#{self.lineno + 1} : Semantic Error! No 'while' found for 'break'."
+
+
+class VoidOperandError(BaseSemanticError):
+    def __init__(self, lineno):
+        self.lineno = lineno
+
+    def message(self) -> str:
+        return f"#{self.lineno + 1} : Semantic Error! Void type in operands."

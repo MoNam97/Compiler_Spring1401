@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from enum import Enum
 from string import ascii_letters, digits, whitespace, printable
-from typing import List, Union
+from typing import List, Union, Optional
 
 KEYWORDS = ['break', 'continue', 'def', 'else', 'if', 'return', 'while']
 EPSILON = 'epsilon'
@@ -159,7 +159,7 @@ class ListData:
 class FunctionData:
     addr: int
     ra: int
-    rv: int
+    rv: Optional[int]
     args: List[int]
 
 
