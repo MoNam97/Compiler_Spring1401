@@ -6,6 +6,7 @@ from py_minus.semantic_errors import (
     UnmatchedContinueError,
     UndefinedVariableError,
     VoidOperandError,
+    MainNotFoundError,
 )
 from py_minus.utils import ActionSymbols, SymbolTable, SymbolTableItem, FunctionData, ListData
 
@@ -399,6 +400,16 @@ class CodeGenerator:
 
         return temp1, temp2
 
+    def _handle_program_done(self, token_pack):
+        item = self.symbol_table.find_by_lexim('main')
+        if item is None:
+            self.semantic_errors.append(MainNotFoundError(token_pack.lineno))
+            return
+        func_data = self._find_func_data(item.addr)
+        self.pb.append(f"(ASSIGN, #{len(self.pb) + 2}, {func_data.ra}, )")
+        self.pb.append(f"(JP, {item.addr}, , )")
+        self.pb.append("(ASSIGN, #1, 100, )")
+
     def handle(self, action_symbol, token_pack):
         handlers = {
             ActionSymbols.PID: self._handle_pid,
@@ -439,6 +450,7 @@ class CodeGenerator:
             ActionSymbols.LIST_OFFSET2: self._handle_list_offset2,
             ActionSymbols.LIST_ASSIGN: self._handle_list_assign,
             ActionSymbols.LIST_END_ASSIGN: self._handle_list_end_assign,
+            ActionSymbols.PROGRAM_DONE: self._handle_program_done,
         }
         if action_symbol not in handlers:
             print(f"Error: Unexpected actionsymbol {action_symbol}")
@@ -464,13 +476,7 @@ class CodeGenerator:
         assert len(self.stack) == 0
         assert len(self.if_stack) == 0
         assert len(self.func_stack) == 0
-        main_addr = self._find_addr('main')
-        func_data = self._find_func_data(main_addr)
-        pb = self.pb.copy()
-        pb.append(f"(ASSIGN, #{len(self.pb) + 2}, {func_data.ra}, )")
-        pb.append(f"(JP, {main_addr}, , )")
-        pb.append("(ASSIGN, #1, 100, )")
-        for idx, code in enumerate(pb):
+        for idx, code in enumerate(self.pb):
             print(f"{idx}\t{code}", file=file)
 
     def print_semantic_errors(self, f):

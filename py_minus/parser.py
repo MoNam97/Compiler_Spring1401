@@ -140,15 +140,15 @@ class Parser:
 
 class ParseTable:
     next = {
-        (NonTerminal.Program, 'break'): (NonTerminal.Statements,),
-        (NonTerminal.Program, 'continue'): (NonTerminal.Statements,),
-        (NonTerminal.Program, TokenType.ID): (NonTerminal.Statements,),
-        (NonTerminal.Program, 'return'): (NonTerminal.Statements,),
-        (NonTerminal.Program, 'global'): (NonTerminal.Statements,),
-        (NonTerminal.Program, 'def'): (NonTerminal.Statements,),
-        (NonTerminal.Program, 'if'): (NonTerminal.Statements,),
-        (NonTerminal.Program, 'while'): (NonTerminal.Statements,),
-        (NonTerminal.Program, TokenType.EOF): (NonTerminal.Statements,),
+        (NonTerminal.Program, 'break'): (NonTerminal.Statements, ActionSymbols.PROGRAM_DONE),
+        (NonTerminal.Program, 'continue'): (NonTerminal.Statements, ActionSymbols.PROGRAM_DONE),
+        (NonTerminal.Program, TokenType.ID): (NonTerminal.Statements, ActionSymbols.PROGRAM_DONE),
+        (NonTerminal.Program, 'return'): (NonTerminal.Statements, ActionSymbols.PROGRAM_DONE),
+        (NonTerminal.Program, 'global'): (NonTerminal.Statements, ActionSymbols.PROGRAM_DONE),
+        (NonTerminal.Program, 'def'): (NonTerminal.Statements, ActionSymbols.PROGRAM_DONE),
+        (NonTerminal.Program, 'if'): (NonTerminal.Statements, ActionSymbols.PROGRAM_DONE),
+        (NonTerminal.Program, 'while'): (NonTerminal.Statements, ActionSymbols.PROGRAM_DONE),
+        (NonTerminal.Program, TokenType.EOF): (NonTerminal.Statements, ActionSymbols.PROGRAM_DONE),
 
         (NonTerminal.Statements, ';'): (),
         (NonTerminal.Statements, 'else'): (),

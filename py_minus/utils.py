@@ -132,7 +132,8 @@ class ActionSymbols(Enum):
     LIST_TYPE2 = 32
     LIST_OFFSET2 = 33
 
-    # last used number is 34
+    PROGRAM_DONE = 35
+    # last used number is 35
 
 
 class AddrCode(Enum):

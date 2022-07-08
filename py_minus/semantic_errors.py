@@ -38,3 +38,11 @@ class VoidOperandError(BaseSemanticError):
 
     def message(self) -> str:
         return f"#{self.lineno + 1} : Semantic Error! Void type in operands."
+
+
+class MainNotFoundError(BaseSemanticError):
+    def __init__(self, lineno):
+        self.lineno = lineno
+
+    def message(self) -> str:
+        return f"#{self.lineno + 1} : Semantic Error! main function not found."
