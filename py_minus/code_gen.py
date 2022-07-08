@@ -282,6 +282,18 @@ class CodeGenerator:
         addr = self.func_stack.pop()
         self.pb[addr] = f"(JP, {len(self.pb)}, , )"
 
+    def _handle_func_call_start2(self, token_pack):
+        func_addr = self.stack[-1]
+        item = self.symbol_table.find_by_addr(func_addr)
+        assert item is not None
+        if (
+                item.type is None or
+                not isinstance(item.type, FunctionData)
+        ):
+            self.stack[-1] = UNDEFINED_FUNCTION
+            self.semantic_errors.append(UndefinedVariableError(item.lexim, token_pack.lineno))
+        self.func_stack.append(0)
+
     def _handle_func_call_start(self, _token_pack):
         func_addr = self.stack[-1]
         item = self.symbol_table.find_by_addr(func_addr)
@@ -444,6 +456,7 @@ class CodeGenerator:
             ActionSymbols.FuncPID: self._handle_func_pid,
             ActionSymbols.FuncEnd: self._handle_func_end,
             ActionSymbols.FuncCallStart: self._handle_func_call_start,
+            ActionSymbols.FuncCallStart2: self._handle_func_call_start2,
             ActionSymbols.FuncCallEnd: self._handle_func_call_end,
             ActionSymbols.FuncCallEnd2: self._handle_func_call_end2,
             ActionSymbols.FuncSaveArgs: self._handle_func_save_args,

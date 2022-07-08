@@ -193,7 +193,7 @@ class ParseTable:
             '[', NonTerminal.Expression, ActionSymbols.LIST_OFFSET, ']',
             '=', NonTerminal.C),
         (NonTerminal.B, '('): (
-            '(', ActionSymbols.FuncCallStart, NonTerminal.Arguments, ActionSymbols.FuncCallEnd2, ')'),
+            '(', ActionSymbols.FuncCallStart2, NonTerminal.Arguments, ActionSymbols.FuncCallEnd2, ')'),
 
         (NonTerminal.C, ';'): -1,
         (NonTerminal.C, TokenType.ID): (NonTerminal.Expression, ActionSymbols.ASSIGN),

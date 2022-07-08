@@ -1,2 +1,2 @@
-undefined(100)
-undefined[100]
+[x] undefined(100)
+[ ] undefined[100]

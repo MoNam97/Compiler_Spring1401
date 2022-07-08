@@ -118,6 +118,7 @@ class ActionSymbols(Enum):
     FuncPID = 18
     FuncEnd = 19
     FuncCallStart = 20
+    FuncCallStart2 = 36
     FuncCallEnd = 21
     FuncSaveArgs = 22
     FuncStoreRV = 23
@@ -133,7 +134,7 @@ class ActionSymbols(Enum):
     LIST_OFFSET2 = 33
 
     PROGRAM_DONE = 35
-    # last used number is 35
+    # last used number is 36
 
 
 class AddrCode(Enum):
