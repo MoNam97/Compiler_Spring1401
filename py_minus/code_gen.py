@@ -1,10 +1,15 @@
 import sys
 from collections import deque
 
-from py_minus.semantic_errors import UndefinedVariableError
+from py_minus.semantic_errors import (
+    UnmatchedWhileError,
+    UnmatchedContinueError,
+    UndefinedVariableError
+)
 from py_minus.utils import ActionSymbols, SymbolTable, SymbolTableItem, FunctionData, ListData
 
 INT_SIZE = 4
+UNDEFINED_FUNCTION = -1000
 
 
 class CodeGenerator:
@@ -92,7 +97,7 @@ class CodeGenerator:
     def _handle_pid2(self, token_pack):
         item = self.symbol_table.find_by_lexim(token_pack.lexim)
         if item is None:
-            self.semantic_errors.append(UndefinedVariableError(token_pack.lexim))
+            self.semantic_errors.append(UndefinedVariableError(token_pack.lexim, token_pack.lineno))
             addr = self._get_temp_address()
         else:
             addr = item.addr
@@ -226,11 +231,18 @@ class CodeGenerator:
         self._while_cond_line.pop()
         self.decrease_scope()
 
-    def _handle_loop_break(self, _token_pack):
+    def _handle_loop_break(self, token_pack):
+        if len(self._while_cond_addr) == 0:
+            self.semantic_errors.append(UnmatchedWhileError(token_pack.lineno))
+            return
         self.pb.append(f"(ASSIGN, #0, {self._while_cond_addr[-1]}, )")
         self.pb.append(f"(JP, {self._while_cond_line[-1]}, , )")
 
-    def _handle_loop_continue(self, _token_pack):
+    def _handle_loop_continue(self, token_pack):
+        if len(self._while_start) == 0:
+            self.semantic_errors.append(UnmatchedContinueError(token_pack.lineno))
+            return
+
         self.pb.append(f"(JP, {self._while_start[-1]}, , )")
 
     def _handle_func_def(self, token_pack):
@@ -267,11 +279,25 @@ class CodeGenerator:
         self.pb[addr] = f"(JP, {len(self.pb)}, , )"
 
     def _handle_func_call_start(self, _token_pack):
+        func_addr = self.stack[-1]
+        item = self.symbol_table.find_by_addr(func_addr)
+        if (
+                item is None or
+                item.type is None or
+                not isinstance(item.type, FunctionData)
+        ):
+            self.stack[-1] = UNDEFINED_FUNCTION
         self.func_stack.append(0)
 
     def _handle_func_call_end(self, _token_pack, store_result=True):
         func_addr = self.stack.pop()
         self.func_stack.pop()
+        if func_addr == UNDEFINED_FUNCTION:
+            if store_result:
+                temp_addr = self._get_temp_address()
+                self.stack.append(temp_addr)
+            # Function wasn't defined so we don't need JP
+            return
         func_data = self._find_func_data(func_addr)
         self.pb.append(f"(ASSIGN, #{len(self.pb) + 2}, {func_data.ra}, )")
         self.pb.append(f"(JP, {func_data.addr}, , )")
@@ -287,6 +313,9 @@ class CodeGenerator:
         arg_addr = self.stack.pop()
         idx = self.func_stack[-1]
         func_addr = self.stack[-1]
+        if func_addr == UNDEFINED_FUNCTION:
+            # Function wasn't defined so we don't need to store arguments
+            return
         func_data = self._find_func_data(func_addr)
         self.pb.append(f"(ASSIGN, {arg_addr}, {func_data.args[idx]}, )")
         self.func_stack[-1] += 1
@@ -423,6 +452,9 @@ class CodeGenerator:
         self.scope -= 1
 
     def print(self, file=sys.stdout):
+        if len(self.semantic_errors) > 0:
+            print("The output code has not been generated.", file=file)
+            return
         assert self.scope == 0
         assert len(self.stack) == 0
         assert len(self.if_stack) == 0
