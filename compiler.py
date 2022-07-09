@@ -1,5 +1,6 @@
 # Danial Erfanian - 97110155
 # Mohamad Namdar  - 97106302
+import re
 import sys
 from copy import copy
 
@@ -9,6 +10,7 @@ from py_minus.code_gen import CodeGenerator
 from py_minus.parser import Parser
 from py_minus.scanner import Scanner
 from py_minus.utils import KEYWORDS, TokenType
+from py_minus.opitmizer import Optimizer
 
 
 def write_tokens(recognized_tokens):
@@ -84,6 +86,17 @@ def write_semantic_errors(gen):
         gen.print_semantic_errors(f)
 
 
+def test_re(cg):
+    for i in range(len(cg.pb)):
+        print(re.split(r',', cg.pb[i].strip('()')))
+
+
+def write_optimized_code(op_code):
+    with open("optimized_output.txt", "w+") as f:
+        for i in range(len(op_code.pb)):
+            f.write(str(i) + '\t' + op_code.pb[i] + '\n')
+
+
 if __name__ == '__main__':
     recognized_tokens = []
     symbols = copy(KEYWORDS)
@@ -110,9 +123,16 @@ if __name__ == '__main__':
     # code_gen.print()
     code_gen.print_semantic_errors(sys.stdout)
 
+    # test_re(code_gen)
+    op = Optimizer(code_gen)
+    op.constant_propagation()
+    op.delete_deadlines()
+    write_optimized_code(op)
+    # print(op.mem_value)
+
     write_semantic_errors(code_gen)
     write_ouptut(code_gen)
-    write_parse_tree(parser.parseTree)
+    # write_parse_tree(parser.parseTree)
     write_syntax_errors(parser.syntaxError)
     write_symbol_table(symbols)
     write_tokens(recognized_tokens)
