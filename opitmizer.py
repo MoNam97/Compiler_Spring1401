@@ -1,37 +1,34 @@
 import re
 
 
-class SBlock:
-    in_from = []
-    first = None
-    last = None
-    out_to = []
-
-    def __init__(self, fint):
-        self.first = fint
-
-
 class Optimizer:
     code_gen_pb = None
     pb = None
     code_blocks = []
     mem_value = {}
     useless_mem = []
-
+    pb_changed = False
     sblocks = {}
 
     def __init__(self, pb):
         self.code_gen_pb = pb
         self.pb = pb.copy()
+        self.pb_changed = True
 
-    def optimize_code(self):
+    def simple_optimization(self):
         self.constant_copy_propagation()
+        self.delete_deadlines()
+
+    def deep_optimization(self):
+        while self.pb_changed:
+            self.constant_copy_propagation()
+            self.constant_folding()
         self.delete_deadlines()
 
     def set_mem_values(self):
         self.mem_value = {}
-        for i in range(len(self.code_gen_pb)):
-            current_code = re.split(r',', self.code_gen_pb[i].strip('()'))
+        for i in range(len(self.pb)):
+            current_code = re.split(r',', self.pb[i].strip('()'))
             if current_code[0] == 'ASSIGN':
                 token = ' ' + current_code[2].strip(' @')
                 if re.match(r"#*\d+", current_code[1].strip()):
@@ -42,39 +39,37 @@ class Optimizer:
                 else:
                     self.mem_value[token] = 'complex'
             if current_code[0] in ['ADD', 'MULT', 'SUB', 'EQ', 'LT']:
-                self.mem_value[' '+current_code[3].strip(' @')] = 'complex'
+                self.mem_value[' ' + current_code[3].strip(' @')] = 'complex'
 
         for i in self.mem_value:
             if self.mem_value[i] in self.mem_value and self.mem_value[self.mem_value[i]] != 'complex':
                 self.mem_value[i] = self.mem_value[self.mem_value[i]]
 
-        print(self.mem_value)
-        for i in self.mem_value:
-            if self.mem_value[i] != 'complex':
-                print(i)
-
     def constant_copy_propagation(self):
         self.set_mem_values()
-
-        for i in range(len(self.code_gen_pb)):
-            current_code = re.split(r',', self.code_gen_pb[i].strip('()'))
+        self.pb_changed = False
+        for i in range(len(self.pb)):
+            current_code = re.split(r',', self.pb[i].strip('()'))
             # assign
             if current_code[0] == 'ASSIGN' and re.match(r"\d+", current_code[1].strip()):
                 if current_code[1] in self.mem_value and self.mem_value[current_code[1]] != 'complex':
                     self.useless_mem.append(current_code[1])
                     self.pb[i] = '(ASSIGN,' + self.mem_value[current_code[1]] + ',' + current_code[2] + ', )'
+                    self.pb_changed = True
             # unconditional jump
             elif current_code[0] == 'JP' and re.match(r"@\d+", current_code[1].strip()):
                 jmp_mem_addr = ' ' + current_code[1].strip(' @')
                 if jmp_mem_addr in self.mem_value and re.match(r" #\d+", self.mem_value[jmp_mem_addr]):
                     self.useless_mem.append(jmp_mem_addr)
                     self.pb[i] = '(JP, ' + self.mem_value[jmp_mem_addr].strip(' #') + ', , )'
+                    self.pb_changed = True
             # conditional jump
             elif current_code[0] == 'JPF' and re.match(r"@\d+", current_code[2].strip()):
                 jmp_mem_addr = ' ' + current_code[2].strip(' @')
                 if jmp_mem_addr in self.mem_value and re.match(r" #\d+", self.mem_value[jmp_mem_addr]):
                     self.useless_mem.append(jmp_mem_addr)
                     self.pb[i] = '(JPF,' + current_code[1] + ', ' + self.mem_value[jmp_mem_addr].strip(' #') + ', )'
+                    self.pb_changed = True
             # arithmetic/logical ops
             elif current_code[0] in ['ADD', 'MULT', 'SUB', 'EQ', 'LT']:
                 if current_code[1] in self.mem_value and self.mem_value[current_code[1]] != 'complex':
@@ -82,32 +77,60 @@ class Optimizer:
                         self.useless_mem.extend([current_code[1], current_code[2]])
                         self.pb[i] = '(' + current_code[0] + ',' + self.mem_value[current_code[1]] + ',' + \
                                      self.mem_value[current_code[2]] + ',' + current_code[3] + ')'
+                        self.pb_changed = True
                     else:
                         self.useless_mem.append(current_code[1])
                         self.pb[i] = '(' + current_code[0] + ',' + self.mem_value[current_code[1]] + ',' + current_code[
                             2] + ',' + current_code[3] + ')'
+                        self.pb_changed = True
                 elif current_code[2] in self.mem_value and self.mem_value[current_code[2]] != 'complex':
                     self.useless_mem.append(current_code[2])
                     self.pb[i] = '(' + current_code[0] + ',' + current_code[1] + ',' + self.mem_value[
                         current_code[2]] + ',' + current_code[3] + ')'
+                    self.pb_changed = True
 
     def constant_folding(self):
-        for i in range(len(self.code_gen_pb)):
-            current_code = re.split(r',', self.code_gen_pb[i].strip('()'))
+        for i in range(len(self.pb)):
+            cc = re.split(r',', self.pb[i].strip('()'))  # cc :=  current_code
+            if cc[0] == 'ADD' and re.match(r" #\d+", cc[1]) and re.match(r" #\d+", cc[2]):
+                result = int(cc[1].strip(' #')) + int(cc[2].strip(' #'))
+                self.pb[i] = '(ASSIGN, ' + str(result) + ',' + cc[3] + ', )'
+                self.pb_changed = True
+            elif cc[0] == 'SUB' and re.match(r" #\d+", cc[1]) and re.match(r" #\d+", cc[2]):
+                result = int(cc[2].strip(' #')) - int(cc[1].strip(' #'))
+                self.pb[i] = '(ASSIGN, ' + str(result) + ',' + cc[3] + ', )'
+                self.pb_changed = True
+            elif cc[0] == 'MULT' and re.match(r" #\d+", cc[1]) and re.match(r" #\d+", cc[2]):
+                result = int(cc[1].strip(' #')) * int(cc[2].strip(' #'))
+                self.pb[i] = '(ASSIGN, ' + str(result) + ',' + cc[3] + ', )'
+                self.pb_changed = True
+            elif cc[0] == 'EQ' and re.match(r" #\d+", cc[1]) and re.match(r" #\d+", cc[2]):
+                result = ' #1,' if (int(cc[1].strip(' #')) == int(cc[2].strip(' #'))) else ' #0,'
+                self.pb[i] = '(ASSIGN,' + result + cc[3] + ', )'
+                self.pb_changed = True
+            elif cc[0] == 'LT' and re.match(r" #\d+", cc[1]) and re.match(r" #\d+", cc[2]):
+                result = ' #1,' if (int(cc[1].strip(' #')) < int(cc[2].strip(' #'))) else ' #0,'
+                self.pb[i] = '(ASSIGN,' + result + cc[3] + ', )'
+                self.pb_changed = True
+            elif cc[0] == 'JPF' and cc[1] in self.mem_value and re.match(r' #\d+', self.mem_value[cc[1]]):
+                if self.mem_value[cc[1]] == ' #0':
+                    self.pb[i] = -1
+                else:
+                    self.pb[i] = '(JP,' + cc[2] + ', , )'
+                self.pb_changed = True
 
     def delete_deadlines(self):
         indirect_addr = {0}
         new_addr = {}
         stack = []
         for i in range(len(self.code_gen_pb)):
-            current_code = re.split(r',', self.code_gen_pb[i].strip('()'))
-            if current_code[0] == 'ASSIGN' and current_code[2] in self.useless_mem:
+            cc = re.split(r',', self.code_gen_pb[i].strip('()'))  # cc :=  current_code
+            if cc[0] == 'ASSIGN' and cc[2] in self.useless_mem:
                 self.pb[i] = '-1'
-            elif current_code[0] == 'JP' and re.match(r"@\d+", current_code[1].strip()):
-                indirect_addr.add(' '+current_code[1].strip(' @'))
-            elif current_code[0] == 'JPF' and re.match(r"@\d+", current_code[2].strip()):
-                indirect_addr.add(' '+current_code[2].strip(' @'))
-        write_to_file('before_delete.txt', self.pb)
+            elif cc[0] == 'JP' and re.match(r"@\d+", cc[1].strip()):
+                indirect_addr.add(' ' + cc[1].strip(' @'))
+            elif cc[0] == 'JPF' and re.match(r"@\d+", cc[2].strip()):
+                indirect_addr.add(' ' + cc[2].strip(' @'))
         j = 0
         for i in range(len(self.code_gen_pb)):
             if self.pb[i] != '-1':
@@ -125,72 +148,16 @@ class Optimizer:
         self.pb[:] = (value for value in self.pb if value != '-1')
 
         for i in range(len(self.pb)):
-            current_code = re.split(r',', self.pb[i].strip('()'))
-            if current_code[0] == 'JP' and re.match(r"\d+", current_code[1].strip()):
-                old_addr = int(current_code[1].strip())
-                self.pb[i] = '(' + current_code[0] + ', ' + str(new_addr[old_addr]) + ', , )'
-            elif current_code[0] == 'JPF' and re.match(r"\d+", current_code[2].strip()):
-                old_addr = int(current_code[2].strip())
-                self.pb[i] = '(' + current_code[0] + ',' + current_code[1] + ', ' + str(new_addr[old_addr]) + ', )'
-            elif current_code[0] == 'ASSIGN' and current_code[2] in indirect_addr:
-                old_addr = int(current_code[1].strip(' #'))
-                self.pb[i] = '(ASSIGN, #' + str(new_addr[old_addr]) + ',' + current_code[2] + ', )'
-
-    def temp_blocks(self, dest, i, cur_block):
-        if dest in self.sblocks.keys():
-            self.sblocks[dest].in_from.append(cur_block)
-            cur_block.out_to.append(self.sblocks[dest])
-            cur_block.last = i
-        else:
-            temp = SBlock(dest)
-            temp.in_from.append(cur_block)
-            self.sblocks[dest] = temp
-
-            cur_block.out_to.append(temp)
-            cur_block.last = i
-
-        if i < len(self.pb) - 1:
-            temp = SBlock(i + 1)
-            temp.in_from.append(cur_block)
-            self.sblocks[i + 1] = temp
-            cur_block.out_to.append(temp)
-            cur_block = temp
-        return cur_block
-
-    def simple_block_detector(self):
-        if self.pb is None:
-            print('Error! program block not initialized.')
-        else:
-            cur_block = SBlock(0)
-            cur_block.in_from.append(-1)
-            self.sblocks[0] = cur_block
-            for i in range(len(self.pb)):
-                current_code = re.split(r',', self.pb[i].strip('()'))
-                if current_code[0] == 'JP':
-                    if re.match(r"\d+", current_code[1].strip()):
-                        dest = int(current_code[1].strip())
-                        cur_block = self.temp_blocks(dest, i, cur_block)
-                    else:
-                        print(i, self.pb[i])
-
-                elif current_code[0] == 'JPF':
-                    if re.match(r"\d+", current_code[2].strip()):
-                        dest = int(current_code[2].strip())
-                        cur_block = self.temp_blocks(dest, i, cur_block)
-                    else:
-                        print(i, self.pb[i])
-
-                if i == len(self.pb):
-                    cur_block.out_to.append(-1)
-
-            tmpL = []
-            for item in self.sblocks:
-                # print(item, self.sblocks[item].first, self.sblocks[item].last)
-                # if self.sblocks[item] is not None:
-                tmpL.append((self.sblocks[item].first, self.sblocks[item].last))
-            tmpL.sort()
-            for i in tmpL:
-                print(i)
+            cc = re.split(r',', self.pb[i].strip('()'))
+            if cc[0] == 'JP' and re.match(r"\d+", cc[1].strip()):
+                old_addr = int(cc[1].strip())
+                self.pb[i] = '(' + cc[0] + ', ' + str(new_addr[old_addr]) + ', , )'
+            elif cc[0] == 'JPF' and re.match(r"\d+", cc[2].strip()):
+                old_addr = int(cc[2].strip())
+                self.pb[i] = '(' + cc[0] + ',' + cc[1] + ', ' + str(new_addr[old_addr]) + ', )'
+            elif cc[0] == 'ASSIGN' and cc[2] in indirect_addr and re.match(r' #\d+', cc[1]):
+                old_addr = int(cc[1].strip(' #'))
+                self.pb[i] = '(ASSIGN, #' + str(new_addr[old_addr]) + ',' + cc[2] + ', )'
 
 
 def write_to_file(filepath, olist):
@@ -213,6 +180,8 @@ if __name__ == '__main__':
             output.append(lines[j][:-1].split(maxsplit=1)[1])
 
     op = Optimizer(output)
-    op.optimize_code()
-    # op.simple_block_detector()
+    op.deep_optimization()
     write_optimized_code(op)
+
+#   deep_optimization
+#   simple_optimization

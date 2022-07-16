@@ -115,7 +115,7 @@ if __name__ == '__main__':
 
     write_semantic_errors(code_gen)
     write_ouptut(code_gen)
-    write_parse_tree(parser.parseTree)
+#    write_parse_tree(parser.parseTree)
     write_syntax_errors(parser.syntaxError)
     write_symbol_table(symbols)
     write_tokens(recognized_tokens)
